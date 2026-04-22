@@ -126,7 +126,11 @@ export const CapacitorMBTilesLayer = L.TileLayer.extend({
       // FAST CACHE LOOKUP: Skip DB if we just saw this tile
       const cacheKey = `${this.options.layerType}_${z}_${x}_${y}`;
       if (tileCache.has(cacheKey)) {
-        return tileCache.get(cacheKey);
+        // M1 fix: Re-insert on access to maintain true LRU order
+        const data = tileCache.get(cacheKey);
+        tileCache.delete(cacheKey);
+        tileCache.set(cacheKey, data);
+        return data;
       }
 
       // Capacitor SQLite query syntax
