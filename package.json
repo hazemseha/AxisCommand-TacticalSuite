@@ -1,0 +1,68 @@
+{
+  "name": "offline-map-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron-main.cjs",
+  "author": "Tactical Operations Command",
+  "description": "PinVault Tactical Suite - Offline Field Mapping",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "release": "vite build && node scripts/copy-tiles.js",
+    "pack": "node scripts/pack-tiles.js",
+    "preview": "vite preview",
+    "dist": "vite build && node scripts/copy-tiles.js && electron-builder",
+    "dist:portable": "vite build && node scripts/copy-tiles.js && electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.pinvault.tactical",
+    "productName": "PinVault-Tactical",
+    "directories": {
+      "output": "release-builds"
+    },
+    "files": [
+      "dist",
+      "electron-main.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "tiles-cache",
+        "to": "tiles-cache",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "public/icon.ico",
+      "cscLink": null
+    },
+    "npmRebuild": false
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/filesystem": "^8.1.2",
+    "electron": "^33.4.11",
+    "electron-builder": "^24.13.3",
+    "sharp": "^0.34.5",
+    "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.0",
+    "@capacitor/app": "^8.1.0",
+    "@geoman-io/leaflet-geoman-free": "^2.19.2",
+    "@tmcw/togeojson": "^7.1.2",
+    "better-sqlite3": "^12.9.0",
+    "idb": "^8.0.3",
+    "jszip": "^3.10.1",
+    "leaflet": "^1.9.4",
+    "qrcode": "^1.5.4",
+    "sqlite3": "^6.0.1"
+  }
+}

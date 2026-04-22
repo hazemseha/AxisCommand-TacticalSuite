@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Axis Command</string>
+    <string name="title_activity_main">Axis Command</string>
+    <string name="package_name">com.pinvault.tactical</string>
+    <string name="custom_url_scheme">com.pinvault.tactical</string>
+</resources>

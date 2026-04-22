@@ -1,0 +1,57 @@
+# ===== Dependencies =====
+node_modules/
+
+# ===== Build Output =====
+dist/
+dist-ssr/
+
+# ===== Map Tile Data (Too large for Git — deploy separately) =====
+*.mbtiles
+*.db
+!capacitor.config.json
+tiles-cache/
+
+# ===== APK Releases (Use GitHub Releases instead) =====
+*.apk
+*.aab
+*.asar
+
+# ===== Android Build Artifacts =====
+android/app/build/
+android/.gradle/
+android/build/
+android/capacitor-*/build/
+android/local.properties
+
+# ===== Release Builds =====
+release-builds/
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== IDE / Editor =====
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.local
+
+# ===== Test Files =====
+test.png
+test_tile.png
+test_unit.svg
+
+# ===== OS Generated =====
+Thumbs.db
+ehthumbs.db
+Desktop.ini

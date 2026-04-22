@@ -1,0 +1,14 @@
+{
+  "appId": "com.pinvault.tactical",
+  "appName": "PinVault Tactical",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Filesystem": {
+      "path": "data"
+    }
+  }
+}
