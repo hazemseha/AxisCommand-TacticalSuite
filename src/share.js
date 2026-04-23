@@ -1,6 +1,14 @@
 /**
- * share.js — Export/Import and Local LAN Sync (Host/Pull)
- * Handles packaging pins, routes, zones, folders, and videos.
+ * share.js — Unified Tactical Data Exchange (V2.0)
+ * 
+ * THREE export modes:
+ *   .tactical  — Encrypted delta sync file (LWW-compatible, air-gapped sync)
+ *   .pinvault  — Legacy full backup (unencrypted, for backward compat)
+ *   .kml/.json — Interoperability (via exportGeo.js)
+ * 
+ * TWO import modes:
+ *   .tactical  → decrypt → resolveConflicts() → applyResolvedRecords()
+ *   .pinvault  → legacy blind upsert (backward compat)
  */
 import JSZip from 'jszip';
 import QRCode from 'qrcode';
@@ -9,48 +17,20 @@ import {
   getAllRoutes, saveRoute, 
   getAllZones, saveZone, 
   getAllFolders, saveFolder, 
-  getAllVideos, saveVideo 
+  getAllVideos, saveVideo,
+  getUpdatesSince, getDeviceId, getLastSyncTime, setLastSyncTime,
+  applyResolvedRecords
 } from './db.js';
 import { loadAllFeatures, getComputedVisibility } from './features.js';
 import { showToast } from './toast.js';
 import { t } from './i18n.js';
 import { importExternalData } from './importExt.js';
 import { exportKML, exportGeoJSON } from './exportGeo.js';
+import { showTacticalPrompt, showTacticalConfirm } from './user-management.js';
+import { encrypt, decrypt, isEncryptionActive } from './crypto.js';
+import { resolveConflicts, validateSyncPayload, formatSyncSummary } from './sync-engine.js';
 
-/**
- * WebRTC-based Local IP Discovery
- * Works on both Android WebView and Desktop browsers without server dependency.
- * Returns the local network IP (e.g. "192.168.1.15") or null if unavailable.
- */
-async function getLocalIPviaWebRTC() {
-  return new Promise((resolve) => {
-    const timeout = setTimeout(() => resolve(null), 3000);
-    
-    try {
-      const pc = new RTCPeerConnection({ iceServers: [] });
-      pc.createDataChannel('');
-      
-      pc.onicecandidate = (e) => {
-        if (!e || !e.candidate || !e.candidate.candidate) return;
-        
-        // Extract IP from ICE candidate string
-        const match = e.candidate.candidate.match(/(\d{1,3}\.){3}\d{1,3}/);
-        if (match && match[0] !== '0.0.0.0') {
-          clearTimeout(timeout);
-          pc.close();
-          resolve(match[0]);
-        }
-      };
-      
-      pc.createOffer()
-        .then(offer => pc.setLocalDescription(offer))
-        .catch(() => { clearTimeout(timeout); resolve(null); });
-    } catch (e) {
-      clearTimeout(timeout);
-      resolve(null);
-    }
-  });
-}
+// ===== HELPERS =====
 
 function getExtension(mimeType) {
   const map = {
@@ -62,6 +42,256 @@ function getExtension(mimeType) {
   };
   return map[mimeType] || 'mp4';
 }
+
+// ===================================================================
+// SECTION 1: TACTICAL EXCHANGE ENVELOPE (.tactical) — V2.0 SYNC
+// ===================================================================
+
+/**
+ * Export a Tactical Exchange Envelope (.tactical)
+ * Uses delta sync payload + AES-256-GCM encryption.
+ * Compatible with both file-based and WebSocket sync pipelines.
+ * 
+ * @param {number} [sinceTimestamp=0] — Delta export since this time (0 = full)
+ * @param {string} [peerDeviceId] — If exporting for a specific peer
+ * @param {Object} [options] — { folderId, folderName } for folder-scoped export
+ */
+export async function exportTacticalEnvelope(sinceTimestamp = 0, peerDeviceId, options = {}) {
+  const modal = document.getElementById('export-modal');
+  const statusText = document.getElementById('export-status-text');
+  const progressFill = document.getElementById('export-progress-fill');
+
+  modal.classList.remove('hidden');
+  progressFill.style.width = '10%';
+
+  try {
+    // Step 1: Fetch delta (includes tombstones)
+    statusText.textContent = options.folderId
+      ? `جاري تجميع محتويات المجلد "${options.folderName || ''}"...`
+      : 'جاري تجميع التحديثات...';
+    const lastSync = peerDeviceId ? getLastSyncTime(peerDeviceId) : sinceTimestamp;
+    let delta = await getUpdatesSince(lastSync);
+    progressFill.style.width = '25%';
+
+    // Step 1.5: If folder-scoped, filter delta to only this folder's content
+    if (options.folderId) {
+      const targetFolderId = options.folderId;
+      delta = {
+        ...delta,
+        pins: (delta.pins || []).filter(r => r.folderId === targetFolderId),
+        routes: (delta.routes || []).filter(r => r.folderId === targetFolderId),
+        zones: (delta.zones || []).filter(r => r.folderId === targetFolderId),
+        folders: (delta.folders || []).filter(r => r.id === targetFolderId || r.parentId === targetFolderId),
+      };
+    }
+    progressFill.style.width = '30%';
+
+    // Step 2: Serialize the sync payload to JSON
+    const payloadJson = JSON.stringify(delta);
+
+    // Step 3: Encrypt the payload
+    statusText.textContent = 'جاري تشفير البيانات (AES-256-GCM)...';
+    let payloadData;
+    let isEncrypted = false;
+
+    if (isEncryptionActive()) {
+      payloadData = await encrypt(payloadJson);
+      isEncrypted = true;
+    } else {
+      payloadData = payloadJson;
+    }
+    progressFill.style.width = '50%';
+
+    // Step 4: Compute signature (SHA-256 of encrypted payload)
+    const signatureBuffer = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(payloadData)
+    );
+    const signature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    // Step 5: Build manifest
+    const tombstoneCount =
+      (delta.pins || []).filter(r => r.deleted).length +
+      (delta.routes || []).filter(r => r.deleted).length +
+      (delta.zones || []).filter(r => r.deleted).length +
+      (delta.folders || []).filter(r => r.deleted).length;
+
+    const manifest = {
+      app: 'AxisCommand',
+      version: '2.0',
+      format: 'tactical-exchange-envelope',
+      deviceId: getDeviceId(),
+      timestamp: Date.now(),
+      syncType: options.folderId ? 'folder' : (lastSync > 0 ? 'delta' : 'full'),
+      lastSyncTime: lastSync,
+      encryption: isEncrypted ? 'AES-256-GCM' : 'none',
+      signature: signature,
+      folderId: options.folderId || null,
+      folderName: options.folderName || null,
+      counts: {
+        pins: (delta.pins || []).length,
+        routes: (delta.routes || []).length,
+        zones: (delta.zones || []).length,
+        folders: (delta.folders || []).length,
+        tombstones: tombstoneCount
+      }
+    };
+
+    // Step 6: Package as ZIP
+    statusText.textContent = 'جاري حزم الملف التكتيكي...';
+    const zip = new JSZip();
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+    zip.file('payload.enc', payloadData);
+    progressFill.style.width = '70%';
+
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    });
+    progressFill.style.width = '90%';
+
+    // Step 7: Trigger download
+    const date = new Date().toISOString().split('T')[0];
+    let filename;
+    if (options.folderId) {
+      const safeName = (options.folderName || 'folder').replace(/[^a-zA-Z0-9\u0600-\u06FF_-]/g, '_');
+      filename = `AxisCommand_folder_${safeName}_${date}.tactical`;
+    } else {
+      const syncLabel = lastSync > 0 ? 'delta' : 'sync';
+      filename = `AxisCommand_${syncLabel}_${date}.tactical`;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    progressFill.style.width = '100%';
+    const scopeLabel = options.folderId ? `📁 ${options.folderName}` : '';
+    statusText.textContent = `✅ تم ${scopeLabel} — ${isEncrypted ? '🔐 مشفر' : '⚠️ غير مشفر'} | SIG: ${signature.substring(0, 8)}`;
+
+    // Update peer sync time if applicable
+    if (peerDeviceId) {
+      setLastSyncTime(peerDeviceId, Date.now());
+    }
+
+    setTimeout(() => { modal.classList.add('hidden'); progressFill.style.width = '0%'; }, 2000);
+    showToast(`📦 ${filename} — ${manifest.counts.pins + manifest.counts.routes + manifest.counts.zones} عنصر`, 'success');
+
+  } catch (err) {
+    console.error('[TacticalExport]', err);
+    modal.classList.add('hidden');
+    progressFill.style.width = '0%';
+    showToast('❌ فشل التصدير: ' + err.message, 'error');
+  }
+}
+
+/**
+ * Import a Tactical Exchange Envelope (.tactical)
+ * Decrypts → validates → resolveConflicts() → applyResolvedRecords()
+ * 
+ * @param {File|Blob} file
+ */
+export async function importTacticalEnvelope(file) {
+  showToast('📥 جاري استيراد الملف التكتيكي...', 'info');
+
+  try {
+    // Step 1: Unzip
+    const zip = await JSZip.loadAsync(file);
+
+    // Step 2: Read manifest
+    const manifestFile = zip.file('manifest.json');
+    if (!manifestFile) throw new Error('ملف تالف — manifest.json مفقود');
+    const manifest = JSON.parse(await manifestFile.async('text'));
+
+    if (!manifest.app || (manifest.app !== 'AxisCommand' && manifest.app !== 'PinVault')) {
+      throw new Error('ملف غير صالح — ليس ملف AxisCommand');
+    }
+    if (manifest.version !== '2.0') {
+      throw new Error(`إصدار غير مدعوم: ${manifest.version}`);
+    }
+
+    // Step 3: Read encrypted payload
+    const payloadFile = zip.file('payload.enc');
+    if (!payloadFile) throw new Error('ملف تالف — payload.enc مفقود');
+    let payloadData = await payloadFile.async('text');
+
+    // Step 4: Verify signature
+    const signatureBuffer = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(payloadData)
+    );
+    const computedSig = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    if (manifest.signature && computedSig !== manifest.signature) {
+      throw new Error('🔴 فشل التحقق من السلامة — الملف ربما تم التلاعب به');
+    }
+
+    // Step 5: Decrypt if encrypted
+    let payloadJson;
+    if (manifest.encryption === 'AES-256-GCM') {
+      if (!isEncryptionActive()) {
+        throw new Error('🔐 الملف مشفر — يجب تسجيل الدخول أولاً لفك التشفير');
+      }
+      payloadJson = await decrypt(payloadData);
+      if (!payloadJson || payloadJson === payloadData) {
+        throw new Error('🔴 فشل فك التشفير — مفتاح خاطئ أو بيانات تالفة');
+      }
+    } else {
+      payloadJson = payloadData;
+    }
+
+    // Step 6: Parse and validate
+    const remoteData = JSON.parse(payloadJson);
+    const validation = validateSyncPayload(remoteData);
+    if (!validation.valid) {
+      throw new Error('بيانات غير صالحة: ' + validation.error);
+    }
+
+    // Step 7: Get local state for conflict resolution
+    const localData = await getUpdatesSince(0); // Full local state
+
+    // Step 8: Resolve conflicts using LWW
+    const { toApplyLocally, toSendToRemote, stats } = resolveConflicts(localData, remoteData);
+
+    // Step 9: Apply remote wins to local DB
+    let appliedCounts = { pins: 0, routes: 0, zones: 0, folders: 0 };
+    const totalToApply = (toApplyLocally.pins?.length || 0) + (toApplyLocally.routes?.length || 0) +
+                         (toApplyLocally.zones?.length || 0) + (toApplyLocally.folders?.length || 0);
+
+    if (totalToApply > 0) {
+      appliedCounts = await applyResolvedRecords(toApplyLocally);
+    }
+
+    // Step 10: Update peer sync time
+    if (remoteData.deviceId) {
+      setLastSyncTime(remoteData.deviceId, Date.now());
+    }
+
+    // Step 11: Reload map features
+    await loadAllFeatures();
+
+    // Step 12: Show results
+    const summary = formatSyncSummary(stats);
+    showToast(`✅ ${summary}`, 'success');
+    console.log('[TacticalImport] Complete:', stats, 'Applied:', appliedCounts);
+
+  } catch (err) {
+    console.error('[TacticalImport]', err);
+    showToast('❌ ' + err.message, 'error');
+  }
+}
+
+// ===================================================================
+// SECTION 2: LEGACY .pinvault EXPORT/IMPORT (V1.0 COMPAT)
+// ===================================================================
 
 async function prepareZipContent(statusCallback, progressCallback, options = {}) {
   const zip = new JSZip();
@@ -115,7 +345,7 @@ async function prepareZipContent(statusCallback, progressCallback, options = {})
   zip.file('videos.json', JSON.stringify(videosMetadata, null, 2));
 
   const metadata = {
-    app: 'PinVault', version: '2.0',
+    app: 'PinVault', version: '1.0',
     exportDate: new Date().toISOString(),
     pinCount: pins.length, routeCount: routes.length, zoneCount: zones.length, videoCount: videos.length,
     visibleOnly: visibleOnly
@@ -132,7 +362,7 @@ async function prepareZipContent(statusCallback, progressCallback, options = {})
     progressCallback(85 + (metadata.percent / 100) * 15);
   });
 
-  // Calculate Hash for P2P Integrity
+  // Calculate Hash for Integrity
   const arrayBuffer = await blob.arrayBuffer();
   const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -140,8 +370,6 @@ async function prepareZipContent(statusCallback, progressCallback, options = {})
   
   return { blob, hash: hashHex };
 }
-
-// ===== EXPORT =====
 
 export async function exportData(visibleOnly = false) {
   const modal = document.getElementById('export-modal');
@@ -181,9 +409,10 @@ export async function exportData(visibleOnly = false) {
   }
 }
 
-// ===== IMPORT =====
-
-export async function importData(file) {
+/**
+ * Legacy .pinvault import (V1.0 compat — blind upsert, no LWW)
+ */
+export async function importLegacyPinvault(file) {
   if (!file) return;
   showToast(t('importingData') || 'Importing Data...', 'info');
 
@@ -196,7 +425,9 @@ export async function importData(file) {
     };
 
     const metadata = await checkAndParse('metadata.json');
-    if (!metadata || metadata.app !== 'PinVault') throw new Error('Invalid file format');
+    if (!metadata || (metadata.app !== 'PinVault' && metadata.app !== 'AxisCommand')) {
+      throw new Error('Invalid file format');
+    }
 
     const pinsData = await checkAndParse('pins.json');
     const routesData = await checkAndParse('routes.json');
@@ -225,7 +456,9 @@ export async function importData(file) {
   }
 }
 
-// ===== WIRELESS LAN SYNC =====
+// ===================================================================
+// SECTION 3: WIRELESS LAN SYNC (Legacy Host/Pull via Python server)
+// ===================================================================
 
 export async function hostData() {
   const syncStatus = document.getElementById('sync-status');
@@ -264,7 +497,7 @@ export async function pullData(ip) {
   const spinner = document.querySelector('#sync-progress .spinner');
   
   if (!ip) {
-    ip = prompt('Enter Host IP (e.g. 192.168.1.15):');
+    ip = await showTacticalPrompt('Enter Host IP (e.g. 192.168.1.15):');
     if (!ip) return;
   }
 
@@ -290,7 +523,7 @@ export async function pullData(ip) {
     syncStatus.textContent = `Integrity Verified: ${hashHex.substring(0, 8)}`;
     setTimeout(async () => {
         syncStatus.textContent = 'Importing data into tactical map...';
-        await importData(blob);
+        await importLegacyPinvault(blob);
         syncStatus.style.color = 'var(--success)';
         syncStatus.textContent = 'Import Complete! (Checksum OK)';
     }, 1000);
@@ -304,82 +537,86 @@ export async function pullData(ip) {
   }
 }
 
-// ===== SETUP =====
+// ===================================================================
+// SECTION 4: SETUP (Wire all UI controls)
+// ===================================================================
 
 export function setupShareControls() {
   const getVisibleOnly = () => document.getElementById('chk-export-visible-only')?.checked || false;
 
-  document.getElementById('btn-export')?.addEventListener('click', () => exportData(getVisibleOnly()));
+  // Interop exports
   document.getElementById('btn-export-kml')?.addEventListener('click', () => exportKML(getVisibleOnly()));
   document.getElementById('btn-export-geojson')?.addEventListener('click', () => exportGeoJSON(getVisibleOnly()));
+  
+  // Legacy .pinvault backup
+  document.getElementById('btn-export')?.addEventListener('click', () => exportData(getVisibleOnly()));
 
+  // ★ NEW: Tactical Sync Export (.tactical)
+  document.getElementById('btn-export-tactical')?.addEventListener('click', () => exportTacticalEnvelope(0));
+
+  // Import handler — routes by file extension
   const importBtn = document.getElementById('btn-import');
   const importInput = document.getElementById('import-file-input');
 
   importBtn?.addEventListener('click', () => importInput.click());
-  importInput?.addEventListener('change', (e) => {
+  importInput?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
       // Cross-Platform Android Memory Intercept
       if (/Android/i.test(navigator.userAgent) && file.size > 5 * 1024 * 1024) {
-         if (!confirm('Warning (Mobile Guard): This file exceeds 5MB. Processing extreme geospatial arrays on Android may exhaust browser cache boundaries. Proceed?')) {
+         const ok = await showTacticalConfirm('Warning (Mobile Guard): This file exceeds 5MB. Processing extreme geospatial arrays on Android may exhaust browser cache boundaries. Proceed?');
+         if (!ok) {
              importInput.value = '';
              return;
          }
       }
       
-      if (file.name.toLowerCase().endsWith('.pinvault')) {
-        importData(file);
+      const nameLower = file.name.toLowerCase();
+      if (nameLower.endsWith('.tactical')) {
+        // ★ V2.0 encrypted sync file → LWW pipeline
+        importTacticalEnvelope(file);
+      } else if (nameLower.endsWith('.pinvault')) {
+        // Legacy backup → blind upsert
+        importLegacyPinvault(file);
       } else {
+        // External formats (KML, GeoJSON, GPX, KMZ)
         importExternalData(file);
       }
       importInput.value = '';
     }
   });
 
+  // Update accepted file types to include .tactical
+  if (importInput) {
+    importInput.accept = '.tactical,.pinvault,.geojson,.kml,.kmz,.gpx';
+  }
+
+  // Wireless LAN Sync Modal
   const syncModal = document.getElementById('sync-modal');
-  document.getElementById('btn-wireless-sync').addEventListener('click', async () => {
+  document.getElementById('btn-wireless-sync')?.addEventListener('click', async () => {
     syncModal.classList.remove('hidden');
     document.getElementById('sync-progress').classList.add('hidden');
     document.getElementById('sync-target-ip').value = '';
     
-    try {
-      let ipText = null;
-      
-      // METHOD 1: Try the Python LAN Server API (PC mode)
-      if (window.location.protocol !== 'file:') {
-        try {
-          const res = await fetch('/api/ip', { signal: AbortSignal.timeout(2000) });
-          if (res.ok) {
-            const data = await res.json();
-            ipText = data.ip;
-          }
-        } catch (e) {
-          // Server not available, will try WebRTC
-        }
-      }
-      
-      // METHOD 2: WebRTC Local IP Discovery (Android / fallback)
-      if (!ipText) {
-        ipText = await getLocalIPviaWebRTC();
-      }
-      
-      if (!ipText) throw new Error('No local network detected');
-      
-      document.getElementById('sync-ip-display').textContent = ipText;
-      
-      const qrCanvas = document.getElementById('sync-qr-canvas');
-      qrCanvas.classList.remove('hidden');
-      await QRCode.toCanvas(qrCanvas, `http://${ipText}:8000`, { width: 140, margin: 2, color: { dark: '#1e1e24', light: '#f8f9fa' }});
-    } catch (err) {
-      document.getElementById('sync-ip-display').textContent = 'Unable to fetch IP';
-      document.getElementById('sync-qr-canvas').classList.add('hidden');
-    }
+    // Replace broken auto-discovery with manual entry instructions
+    const ipDisplay = document.getElementById('sync-ip-display');
+    ipDisplay.innerHTML = `
+      <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6; text-align: right;">
+        <div style="margin-bottom: 6px; font-size: 0.85rem; color: var(--accent-primary);">🔍 كيف تجد عنوان IP الخاص بك:</div>
+        <div>💻 <strong>Windows:</strong> افتح CMD → اكتب <code style="background:rgba(255,255,255,0.1); padding:1px 5px; border-radius:3px;">ipconfig</code> → ابحث عن IPv4</div>
+        <div>📱 <strong>Android:</strong> الإعدادات → WiFi → الشبكة المتصلة → عنوان IP</div>
+        <div style="margin-top: 6px; color: rgba(255,255,255,0.3); font-size: 0.7rem;">مثال: 192.168.1.15</div>
+      </div>
+    `;
+    
+    // Hide QR canvas (no auto-IP to generate QR for)
+    const qrCanvas = document.getElementById('sync-qr-canvas');
+    if (qrCanvas) qrCanvas.classList.add('hidden');
   });
 
-  document.getElementById('sync-modal-close').addEventListener('click', () => syncModal.classList.add('hidden'));
-  document.getElementById('btn-sync-host').addEventListener('click', hostData);
-  document.getElementById('btn-sync-pull').addEventListener('click', () => {
+  document.getElementById('sync-modal-close')?.addEventListener('click', () => syncModal.classList.add('hidden'));
+  document.getElementById('btn-sync-host')?.addEventListener('click', hostData);
+  document.getElementById('btn-sync-pull')?.addEventListener('click', () => {
     const ip = document.getElementById('sync-target-ip').value.trim();
     if (ip) pullData(ip);
   });

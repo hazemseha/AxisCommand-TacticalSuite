@@ -16,6 +16,7 @@ const isNativeMobile = Capacitor.isNativePlatform();
 import { showToast } from './toast.js';
 import { t } from './i18n.js';
 import { confirmAction } from './utils.js';
+import { showTacticalConfirm, showTacticalAlert } from './user-management.js';
 
 let map;
 let onFeatureSelect;
@@ -473,8 +474,20 @@ async function promptDeleteFolder(folderId) {
   }
   childFolders.forEach(c => countCascades(c.id));
 
+  // Get folder name for display
+  const targetFolder = folders.find(f => f.id === folderId);
+  const folderName = targetFolder ? targetFolder.name : 'مجلد';
+
   if (totalItems > 0 || totalFolders > 0) {
-      if (!confirm(`Warning: Deleting this folder will definitively purge ${totalItems} operational markers and ${totalFolders} sub-folders permanently via BATCH DELETE. Proceed?`)) return;
+      const itemBreakdown = [];
+      if (pIdsToKill.length > 0) itemBreakdown.push(`${pIdsToKill.length} نقطة`);
+      if (rIdsToKill.length > 0) itemBreakdown.push(`${rIdsToKill.length} مسار`);
+      if (zIdsToKill.length > 0) itemBreakdown.push(`${zIdsToKill.length} منطقة`);
+      const breakdown = itemBreakdown.join(' + ');
+      const subNote = totalFolders > 0 ? ` و ${totalFolders} مجلد فرعي` : '';
+      const msg = `⚠️ المجلد "${folderName}" يحتوي على ${totalItems} عنصر (${breakdown})${subNote}.\n\nحذف هذا المجلد سيؤدي إلى حذف جميع محتوياته نهائياً.\n\nهل أنت متأكد؟`;
+      const ok = await showTacticalConfirm(msg);
+      if (!ok) return;
   }
 
   // 1. Remove from Map RAM locally first to prevent ghost leaks
@@ -633,17 +646,33 @@ async function appendFolderNode(container, folderId, allElements, depth, filter)
       showFolderPrompt(createFolder, folderData.id, folderData.name);
     };
 
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'btn btn-secondary';
+    shareBtn.style.padding = '2px 6px';
+    shareBtn.style.fontSize = '0.7rem';
+    shareBtn.style.color = '#06d6a0';
+    shareBtn.innerHTML = '🔗';
+    shareBtn.title = 'مشاركة المجلد (.tactical)';
+    shareBtn.onclick = async (e) => {
+      e.stopPropagation();
+      const { exportTacticalEnvelope } = await import('./share.js');
+      exportTacticalEnvelope(0, null, { folderId: folderData.id, folderName: folderData.name });
+    };
+
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-secondary';
     delBtn.style.padding = '2px 6px';
     delBtn.style.fontSize = '0.7rem';
-    delBtn.innerHTML = 'Del';
+    delBtn.style.color = '#ef4444';
+    delBtn.innerHTML = '🗑️';
+    delBtn.title = 'حذف المجلد';
     delBtn.onclick = (e) => {
       e.stopPropagation();
       promptDeleteFolder(folderData.id);
     };
 
     controls.appendChild(addBtn);
+    controls.appendChild(shareBtn);
     controls.appendChild(delBtn);
 
     header.appendChild(visibilityCheckbox);
@@ -737,7 +766,7 @@ async function renderItemsToBody(items, container) {
       e.stopPropagation();
       
       // Use the custom non-blocking confirm dialog to prevent window blur
-      const isConfirmed = await window.showConfirmDialog(`Permanently delete "${item.name || 'this item'}"?`);
+      const isConfirmed = await showTacticalConfirm(`Permanently delete "${item.name || 'this item'}"?`);
 
       if (isConfirmed) {
         // Find and remove map layer first
@@ -953,7 +982,7 @@ export function initLibraryUI() {
   if (libBtnSave) {
     libBtnSave.onclick = async () => {
       const name = libNameInput.value.trim();
-      if (!name) { alert('Enter a name for this unit'); return; }
+      if (!name) { await showTacticalAlert('Enter a name for this unit'); return; }
       if (!libPendingData) return;
 
       await addIconToLibrary(name, libPendingData);

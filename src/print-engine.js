@@ -53,12 +53,7 @@ function captureMapState(map) {
  * @param {HTMLElement} headerEl — main header element
  */
 function restoreMapState(map, state, L, headerEl) {
-  // Restore map position
-  map.options.zoomSnap = state.zoomSnap;
-  map.invalidateSize();
-  map.setView(state.center, state.zoom, { animate: false });
-
-  // Clean up print DOM attributes
+  // Clean up print DOM attributes first
   document.body.removeAttribute('data-print-size');
   document.body.removeAttribute('data-print-orient');
   const frame = document.getElementById('print-guide-frame');
@@ -71,6 +66,15 @@ function restoreMapState(map, state, L, headerEl) {
       map.removeLayer(layer);
     }
   });
+
+  // Wait for DOM to repaint after UI restoration, then fix Leaflet's internal
+  // container size calculation. Without this delay, invalidateSize() reads stale
+  // dimensions and the tile grid is corrupted (black void / missing tiles).
+  setTimeout(() => {
+    map.options.zoomSnap = state.zoomSnap;
+    map.invalidateSize(true);
+    map.setView(state.center, state.zoom, { animate: false });
+  }, 100);
 }
 
 // ===== TILE LOADING (B1 fix: event-driven with timeout fallback) =====

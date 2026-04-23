@@ -7,6 +7,7 @@
 import L from 'leaflet';
 import { showToast } from './toast.js';
 import { t } from './i18n.js';
+import { showTacticalConfirm } from './user-management.js';
 
 let map = null;
 let isActive = false;
@@ -395,9 +396,10 @@ function attachTouchHandlers(pf) {
 }
 
 // ===== DELETE & UNDO =====
-function deleteAllFigures() {
+async function deleteAllFigures() {
   if (placedFigures.length === 0) { showToast('لا يوجد رموز', 'info'); return; }
-  if (!confirm(`🗑️ حذف جميع الرموز (${placedFigures.length})؟`)) return;
+  const ok = await showTacticalConfirm(`🗑️ حذف جميع الرموز (${placedFigures.length})؟`);
+  if (!ok) return;
   deselectFigure();
   placedFigures.forEach(pf => {
     undoStack.push({ figure: pf.figure, latlng: pf.marker.getLatLng(), rotation: pf.rotation || 0 });

@@ -214,18 +214,7 @@
       </div>
       <div id="header-actions">
 
-
-        <button id="btn-lang-toggle" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" data-i18n="switchLang">العربية</button>
-        <button id="btn-select-area" class="icon-btn" title="Download Offline Area">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        </button>
-        <button id="btn-shutdown-app" class="icon-btn" style="color: var(--danger);" title="Save & Exit App">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
-        <button id="btn-label-toggle" class="icon-btn" title="Toggle Labels">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
-        </button>
-        
+        <!-- Group 1: Drawing Tools -->
         <div style="display: flex; gap: 4px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 10px; margin-left: 5px;">
           <button id="btn-add-marker" class="icon-btn action-btn" title="Add Marker" data-i18n-title="addMarker">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 8 12 8 12s8-6.75 8-12c0-4.42-3.58-8-8-8z"/></svg>
@@ -245,26 +234,34 @@
           <button id="btn-add-text" class="icon-btn action-btn" title="Manual Text Overlay" data-i18n-title="addText" style="color: #64b5f6;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
           </button>
-          <button id="btn-los-tool" class="icon-btn action-btn" title="Line of Sight" data-i18n-title="losTitle" style="color: #f97316;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-          <button id="btn-spyglass" class="icon-btn action-btn" title="عدسة التجسس" data-i18n-title="spyglass" style="color: #22d3ee;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
-          </button>
           <button id="btn-print-map" class="icon-btn action-btn" title="Print Map" data-i18n-title="printMap" style="color: #ffca28;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           </button>
         </div>
 
+        <!-- Group 2: Map View Controls -->
         <div style="display: flex; gap: 4px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 10px; margin-left: 5px;">
+          <button id="btn-label-toggle" class="icon-btn" title="Toggle Labels" style="color: #8b9dc3;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </button>
           <button id="btn-night-ops" class="icon-btn" title="الوضع الليلي التكتيكي" data-i18n-title="nightOps" style="color: #ef4444;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </button>
+          <button id="btn-layer-toggle" class="icon-btn" title="Toggle Satellite/Street View">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
         </div>
 
-        <button id="btn-layer-toggle" class="icon-btn" title="Toggle Satellite/Street View" style="margin-left: 10px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        </button>
+        <!-- Group 3: System Controls (far edge) -->
+        <div style="display: flex; gap: 4px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 10px; margin-left: 5px;">
+          <button id="btn-lang-toggle" class="btn btn-secondary" style="font-size: 0.7rem; padding: 3px 7px;" data-i18n="switchLang">العربية</button>
+          <button id="btn-select-area" class="icon-btn" title="Download Offline Area">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <button id="btn-shutdown-app" class="icon-btn" style="color: var(--danger);" title="Save & Exit App">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -302,35 +299,56 @@
         </div>
       </div>
 
-      <!-- Export Visibility Control -->
-      <div style="display:flex; align-items:center; margin-bottom: 10px; background:rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; border:1px solid rgba(255,255,255,0.05);">
-        <label class="switch" style="transform: scale(0.8);">
-          <input type="checkbox" id="chk-export-visible-only">
-          <span class="slider round"></span>
-        </label>
-        <span style="font-size: 0.75rem; margin-left: 10px; opacity:0.8;" data-i18n="exportVisibleOnly">Export Visible Only</span>
-      </div>
+      <!-- ═══ مركز التبادل (Export Center) ═══ -->
+      <div style="margin-bottom: 10px;">
 
-      <!-- Sidebar Actions -->
-      <div id="sidebar-actions" style="flex-wrap: wrap;">
-        <button id="btn-export-kml" class="sidebar-action-btn" style="width:31%; padding:5px; font-size:0.75rem; border:1px solid rgba(255,165,0,0.3); color:#FFA500;">
-          <span data-i18n="exportKml">.KML</span>
-        </button>
-        <button id="btn-export-geojson" class="sidebar-action-btn" style="width:31%; padding:5px; font-size:0.75rem; border:1px solid rgba(0,255,0,0.3); color:#00FF00;">
-          <span data-i18n="exportGeojson">.JSON</span>
-        </button>
-        <button id="btn-export" class="sidebar-action-btn" style="width:31%; padding:5px; font-size:0.75rem; border:1px solid rgba(0,191,255,0.3); color:#00BFFF;">
-          <span data-i18n="exportShare">.PACK</span>
-        </button>
-        <button id="btn-import" class="sidebar-action-btn" style="width:100%; margin-top:8px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span data-i18n="importData">Import Data</span>
-        </button>
-        <button id="btn-wireless-sync" class="sidebar-action-btn" style="background:rgba(6,127,214,0.3); border:1px solid #067fd6; margin-top:6px; justify-content:center; color:var(--text-primary);">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#067fd6" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          <span data-i18n="wirelessSync">Wireless LAN Sync</span>
-        </button>
-        <input type="file" id="import-file-input" accept=".pinvault,.geojson,.kml,.kmz,.gpx" hidden />
+        <!-- Toggle: Visible Only -->
+        <div style="display:flex; align-items:center; margin-bottom: 10px; background:rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 6px; border:1px solid rgba(255,255,255,0.05);">
+          <label class="switch" style="transform: scale(0.75); flex-shrink:0;">
+            <input type="checkbox" id="chk-export-visible-only">
+            <span class="slider round"></span>
+          </label>
+          <span style="font-size: 0.75rem; margin-right: 8px; opacity:0.8;">تصدير العناصر المرئية فقط</span>
+        </div>
+
+        <!-- Section 1: Tactical Sync (Primary) -->
+        <div style="margin-bottom: 8px;">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(6,214,160,0.7); margin-bottom: 5px; font-weight: bold;">🔐 مزامنة تكتيكية</div>
+          <button id="btn-export-tactical" class="sidebar-action-btn" style="width:100%; background:rgba(6,214,160,0.1); border:1px solid rgba(6,214,160,0.4); color:#06d6a0; font-weight:bold; padding: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <span>تصدير مشفر (.tactical)</span>
+          </button>
+        </div>
+
+        <!-- Section 2: External Interop -->
+        <div style="margin-bottom: 8px;">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); margin-bottom: 5px; font-weight: bold;">📤 تنسيقات خارجية</div>
+          <div style="display:flex; gap: 6px;">
+            <button id="btn-export-kml" class="sidebar-action-btn" style="flex:1; padding:6px; font-size:0.75rem; border:1px solid rgba(255,165,0,0.25); color:#FFA500; background:rgba(255,165,0,0.06);">
+              <span>.KML</span>
+            </button>
+            <button id="btn-export-geojson" class="sidebar-action-btn" style="flex:1; padding:6px; font-size:0.75rem; border:1px solid rgba(34,211,238,0.25); color:#22d3ee; background:rgba(34,211,238,0.06);">
+              <span>.GeoJSON</span>
+            </button>
+            <button id="btn-export" class="sidebar-action-btn" style="flex:1; padding:6px; font-size:0.75rem; border:1px solid rgba(0,191,255,0.25); color:#00BFFF; background:rgba(0,191,255,0.06);">
+              <span>.PACK</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 3: Import & Sync -->
+        <div>
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); margin-bottom: 5px; font-weight: bold;">📥 استيراد ومزامنة</div>
+          <button id="btn-import" class="sidebar-action-btn" style="width:100%; margin-bottom:6px; padding: 7px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>استيراد بيانات (.tactical / .kml / .pack)</span>
+          </button>
+          <button id="btn-wireless-sync" class="sidebar-action-btn" style="width:100%; background:rgba(6,127,214,0.12); border:1px solid rgba(6,127,214,0.4); color:var(--text-primary); padding: 7px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#067fd6" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            <span>مزامنة لاسلكية (LAN)</span>
+          </button>
+        </div>
+        <input type="file" id="import-file-input" accept=".tactical,.pinvault,.geojson,.kml,.kmz,.gpx" hidden />
       </div>
 
       <!-- Session Logout Button (clears session only, no data loss) -->
@@ -396,70 +414,93 @@
         </button>
       </div>
       
-      <div class="tactical-tools-grid">
-        <button id="btn-measure-tool" class="tactical-tool-btn" title="قياس المسافة والمساحة">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="measureTool">قياس</span>
-        </button>
-        <button id="btn-draw-circle" class="tactical-tool-btn" title="دائرة تكتيكية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="circleTool">دائرة</span>
-        </button>
-        <button id="btn-killbox" class="tactical-tool-btn" title="شبكة الكيل بوكس">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="killboxTool">كيل بوكس</span>
-        </button>
-        <button id="btn-azimuth" class="tactical-tool-btn" title="البوصلة التكتيكية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12,2 14.5,9 12,7 9.5,9" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="12" y2="6" stroke-width="2.5"/><line x1="12" y1="12" x2="16" y2="16" stroke-width="1.5" opacity="0.5"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="azimuthTool">بوصلة</span>
-        </button>
-        <button id="btn-mortar-fcs" class="tactical-tool-btn" title="نظام إدارة نار الهاون">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mortarTool">هاون</span>
-        </button>
-        <button id="btn-freehand" class="tactical-tool-btn" title="رموز تكتيكية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;">رموز</span>
-        </button>
-        <button id="btn-range-rings" class="tactical-tool-btn" title="دوائر النطاق">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="10" stroke-dasharray="3 2"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="ringTool">نطاقات</span>
-        </button>
-        <button id="btn-mgrs" class="tactical-tool-btn" title="إحداثيات عسكرية MGRS">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M4.9 4.9l14.2 14.2" opacity="0.3"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mgrsTool">MGRS</span>
-        </button>
-        <button id="btn-bft" class="tactical-tool-btn" title="التتبع الذاتي — Blue Force Tracking">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="12" cy="12" r="3" fill="#4285f4" stroke="#4285f4"/>
-            <circle cx="12" cy="12" r="7" stroke-dasharray="4 3"/>
-            <circle cx="12" cy="12" r="10" stroke-dasharray="2 3" opacity="0.4"/>
-            <line x1="12" y1="2" x2="12" y2="5" stroke-width="2.5" stroke="#4285f4"/>
-          </svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;">GPS</span>
-        </button>
+      <!-- ═══ Zone 2: أدوات ميدانية (Field Utility) ═══ -->
+      <div style="margin-bottom: 6px;">
+        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(6,214,160,0.7); margin-bottom: 6px; font-weight: bold; padding: 0 2px;">🛠️ أدوات ميدانية</div>
+        <div class="tactical-tools-grid">
+          <button id="btn-measure-tool" class="tactical-tool-btn" title="قياس المسافة والمساحة">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="measureTool">قياس</span>
+          </button>
+          <button id="btn-draw-circle" class="tactical-tool-btn" title="دائرة تكتيكية">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="circleTool">دائرة</span>
+          </button>
+          <button id="btn-mgrs" class="tactical-tool-btn" title="إحداثيات عسكرية MGRS">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M4.9 4.9l14.2 14.2" opacity="0.3"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mgrsTool">MGRS</span>
+          </button>
+          <button id="btn-bft" class="tactical-tool-btn" title="التتبع الذاتي — Blue Force Tracking">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="3" fill="#4285f4" stroke="#4285f4"/>
+              <circle cx="12" cy="12" r="7" stroke-dasharray="4 3"/>
+              <circle cx="12" cy="12" r="10" stroke-dasharray="2 3" opacity="0.4"/>
+              <line x1="12" y1="2" x2="12" y2="5" stroke-width="2.5" stroke="#4285f4"/>
+            </svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">GPS</span>
+          </button>
+          <button id="btn-spyglass" class="tactical-tool-btn" title="المنظار — عدسة الأقمار">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">المنظار</span>
+          </button>
+          <button id="btn-draw-freehand" class="tactical-tool-btn" title="رسم حر وأسهم هجوم">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">رسم حر</span>
+          </button>
+        </div>
+        <!-- Full-width utility buttons -->
+        <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+          <button id="btn-street-labels" class="tactical-tool-btn" style="width: 100%; padding: 7px; display: flex; align-items: center; justify-content: center; gap: 8px;" title="إظهار/إخفاء أسماء الشوارع">
+            <span style="font-size: 16px;">🏷️</span>
+            <span style="font-size: 0.8rem;">أسماء الشوارع</span>
+          </button>
+          <button id="btn-track-record" class="tactical-tool-btn" style="width: 100%; padding: 7px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: rgba(255,68,68,0.3);" title="تسجيل مسار GPS">
+            <span style="font-size: 16px;">🔴</span>
+            <span style="font-size: 0.8rem;">تسجيل مسار GPS</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Street Names Toggle -->
-      <div style="margin-top: 8px;">
-        <button id="btn-street-labels" class="tactical-tool-btn" style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;" title="إظهار/إخفاء أسماء الشوارع">
-          <span style="font-size: 18px;">🏷️</span>
-          <span style="font-size: 0.8rem;">أسماء الشوارع</span>
-        </button>
+      <!-- ═══ Divider ═══ -->
+      <div style="border-top: 1px solid rgba(239,68,68,0.3); margin: 8px 0; position: relative;">
+        <span style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: var(--bg-secondary, #1a1e2e); padding: 0 8px; font-size: 0.55rem; color: rgba(239,68,68,0.5);">⚔</span>
       </div>
 
-      <!-- Track Recording -->
-      <div style="margin-top: 8px;">
-        <button id="btn-track-record" class="tactical-tool-btn" style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: rgba(255,68,68,0.3);" title="تسجيل مسار GPS">
-          <span style="font-size: 18px;">🔴</span>
-          <span style="font-size: 0.8rem;">تسجيل مسار GPS</span>
-        </button>
+      <!-- ═══ Zone 3: عمليات قتالية (Combat Operations) ═══ -->
+      <div style="margin-bottom: 6px;">
+        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(239,68,68,0.7); margin-bottom: 6px; font-weight: bold; padding: 0 2px;">⚔ عمليات قتالية</div>
+        <div class="tactical-tools-grid">
+          <button id="btn-los-tool" class="tactical-tool-btn" title="خط الرؤية — Line of Sight" style="border-color: rgba(249,115,22,0.25);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="12" r="3"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">خط الرؤية</span>
+          </button>
+          <button id="btn-killbox" class="tactical-tool-btn" title="شبكة الكيل بوكس" style="border-color: rgba(239,68,68,0.25);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="killboxTool">كيل بوكس</span>
+          </button>
+          <button id="btn-azimuth" class="tactical-tool-btn" title="البوصلة التكتيكية" style="border-color: rgba(239,68,68,0.25);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12,2 14.5,9 12,7 9.5,9" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="12" y2="6" stroke-width="2.5"/><line x1="12" y1="12" x2="16" y2="16" stroke-width="1.5" opacity="0.5"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="azimuthTool">بوصلة</span>
+          </button>
+          <button id="btn-mortar-fcs" class="tactical-tool-btn" title="نظام إدارة نار الهاون" style="border-color: rgba(239,68,68,0.25);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mortarTool">هاون</span>
+          </button>
+          <button id="btn-freehand" class="tactical-tool-btn" title="رموز الناتو التكتيكية — APP-6" style="border-color: rgba(239,68,68,0.25);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">رموز الناتو</span>
+          </button>
+          <button id="btn-range-rings" class="tactical-tool-btn" title="دوائر النطاق" style="border-color: rgba(239,68,68,0.25);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="10" stroke-dasharray="3 2"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="ringTool">نطاقات</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Data Migration -->
-      <div style="margin-top: 8px;">
-        <button id="btn-migrate-data" class="tactical-tool-btn" style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: rgba(6,214,160,0.3);" title="تشفير البيانات القديمة">
-          <span style="font-size: 18px;">🔐</span>
+      <!-- Data Migration / Encryption -->
+      <div style="margin-top: 4px;">
+        <button id="btn-migrate-data" class="tactical-tool-btn" style="width: 100%; padding: 7px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: rgba(6,214,160,0.3);" title="تشفير البيانات القديمة">
+          <span style="font-size: 16px;">🔐</span>
           <span style="font-size: 0.8rem;">تشفير البيانات</span>
         </button>
       </div>

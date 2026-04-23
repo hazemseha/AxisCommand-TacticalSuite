@@ -12,7 +12,7 @@
  */
 
 import { updateFeature, hardRemoveFeature, renderIconPicker, getCustomTacticalIcons, openLibraryModal } from './features.js';
-import { savePin, generateId } from './db.js';
+import { savePin, generateId, getAllFolders } from './db.js';
 import { setCurrentPin, renderVideoList } from './video.js';
 import { confirmAction } from './utils.js';
 import { estimateTiles, downloadArea } from './downloader.js';
@@ -122,7 +122,27 @@ export async function openFeatureModal(feature) {
   }
 
   if (colorSel) colorSel.value = feature.color || '#ff0000';
-  if (folderSel) folderSel.value = feature.folderId || 'root';
+
+  // Populate folder dropdown from DB
+  if (folderSel) {
+    folderSel.innerHTML = '<option value="root">-- Root --</option>';
+    try {
+      const folders = await getAllFolders();
+      folders.forEach(folder => {
+        const option = document.createElement('option');
+        option.value = folder.id;
+        option.textContent = folder.name;
+        if (feature.folderId === folder.id) {
+          option.selected = true;
+        }
+        folderSel.appendChild(option);
+      });
+    } catch (e) {
+      console.warn('[FeatureModal] Failed to load folders:', e);
+    }
+    // Fallback: ensure correct value if pre-select didn't match
+    folderSel.value = feature.folderId || 'root';
+  }
   
   if (feature.customIconData && previewImg) {
     previewImg.src = feature.customIconData;

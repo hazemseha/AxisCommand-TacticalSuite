@@ -1,6 +1,7 @@
 /**
  * freehand.js — Freehand Drawing & Attack Arrows
  * Draw attack arrows, boundaries, and free marks on the tactical map.
+ * Uses Leaflet's own event system to avoid event interception by internal layers.
  * Fully self-contained module.
  */
 import L from 'leaflet';
@@ -19,11 +20,21 @@ let drawWidth = 3;
 let drawMode = 'free'; // 'free' | 'arrow'
 
 export function initFreehand(mapInstance) {
+  if (!mapInstance) {
+    console.error('[Freehand] initFreehand called with null map instance!');
+    return;
+  }
   map = mapInstance;
   freehandLayer = L.layerGroup().addTo(map);
+  console.log('[Freehand] Initialized successfully');
 }
 
 export function toggleFreehandMode() {
+  if (!map) {
+    console.error('[Freehand] Cannot toggle — map not initialized. Call initFreehand(map) first.');
+    showToast('⚠️ خطأ: الخريطة غير مهيأة', 'error');
+    return;
+  }
   if (freehandActive) {
     deactivateFreehand();
   } else {
@@ -33,17 +44,25 @@ export function toggleFreehandMode() {
 
 function activateFreehand() {
   freehandActive = true;
-  const btn = document.getElementById('btn-freehand');
+  const btn = document.getElementById('btn-draw-freehand');
   if (btn) btn.classList.add('active');
   
   showFreehandPanel();
   document.getElementById('map').style.cursor = 'crosshair';
   
-  // Disable map drag while drawing
-  const mapEl = document.getElementById('map');
-  mapEl.addEventListener('mousedown', onMouseDown);
-  mapEl.addEventListener('mousemove', onMouseMove);
-  mapEl.addEventListener('mouseup', onMouseUp);
+  // Disable map drag — freehand drawing needs full mouse control
+  map.dragging.disable();
+  
+  // Use Leaflet's event system (NOT raw DOM events) to ensure events
+  // aren't consumed by Leaflet's internal canvas/SVG layers
+  map.on('mousedown', onMapMouseDown);
+  map.on('mousemove', onMapMouseMove);
+  map.on('mouseup', onMapMouseUp);
+  
+  // Touch support
+  map.on('touchstart', onMapTouchStart);
+  map.on('touchmove', onMapTouchMove);
+  map.on('touchend', onMapTouchEnd);
   
   showToast('✏️ ' + (t('freehandHint') || 'اضغط واسحب للرسم الحر'), 'info');
 }
@@ -52,40 +71,42 @@ function deactivateFreehand() {
   freehandActive = false;
   isDrawing = false;
   
-  const btn = document.getElementById('btn-freehand');
+  const btn = document.getElementById('btn-draw-freehand');
   if (btn) btn.classList.remove('active');
   
   document.getElementById('map').style.cursor = '';
   removeFreehandPanel();
   
-  const mapEl = document.getElementById('map');
-  mapEl.removeEventListener('mousedown', onMouseDown);
-  mapEl.removeEventListener('mousemove', onMouseMove);
-  mapEl.removeEventListener('mouseup', onMouseUp);
+  // Remove Leaflet event handlers
+  map.off('mousedown', onMapMouseDown);
+  map.off('mousemove', onMapMouseMove);
+  map.off('mouseup', onMapMouseUp);
+  map.off('touchstart', onMapTouchStart);
+  map.off('touchmove', onMapTouchMove);
+  map.off('touchend', onMapTouchEnd);
   
   map.dragging.enable();
 }
 
-function onMouseDown(e) {
-  if (!freehandActive || e.button !== 0) return;
+// ===== EVENT HANDLERS (Leaflet events, not raw DOM) =====
+
+function onMapMouseDown(e) {
+  if (!freehandActive) return;
   
-  // Ignore clicks on the freehand panel
-  const panel = document.getElementById('freehand-panel');
-  if (panel && panel.contains(e.target)) return;
+  // Ignore if clicking on the freehand panel
+  if (e.originalEvent && e.originalEvent.target) {
+    const panel = document.getElementById('freehand-panel');
+    if (panel && panel.contains(e.originalEvent.target)) return;
+  }
   
   isDrawing = true;
-  currentPath = [];
-  map.dragging.disable();
-  
-  const latlng = map.containerPointToLatLng([e.offsetX, e.offsetY]);
-  currentPath.push(latlng);
+  currentPath = [e.latlng];
 }
 
-function onMouseMove(e) {
+function onMapMouseMove(e) {
   if (!isDrawing || !freehandActive) return;
   
-  const latlng = map.containerPointToLatLng([e.offsetX, e.offsetY]);
-  currentPath.push(latlng);
+  currentPath.push(e.latlng);
   
   // Update live preview
   if (currentPolyline) freehandLayer.removeLayer(currentPolyline);
@@ -95,18 +116,48 @@ function onMouseMove(e) {
   }).addTo(freehandLayer);
 }
 
-function onMouseUp(e) {
+function onMapMouseUp(e) {
   if (!isDrawing || !freehandActive) return;
+  finalizeStroke();
+}
+
+// ===== TOUCH SUPPORT =====
+
+function onMapTouchStart(e) {
+  if (!freehandActive) return;
+  isDrawing = true;
+  currentPath = [e.latlng];
+}
+
+function onMapTouchMove(e) {
+  if (!isDrawing || !freehandActive) return;
+  currentPath.push(e.latlng);
   
+  if (currentPolyline) freehandLayer.removeLayer(currentPolyline);
+  currentPolyline = L.polyline(currentPath, {
+    color: drawColor, weight: drawWidth, opacity: 0.8,
+    smoothFactor: 0, lineCap: 'round', lineJoin: 'round'
+  }).addTo(freehandLayer);
+}
+
+function onMapTouchEnd(e) {
+  if (!isDrawing || !freehandActive) return;
+  finalizeStroke();
+}
+
+// ===== STROKE FINALIZATION =====
+
+function finalizeStroke() {
   isDrawing = false;
-  map.dragging.enable();
   
   if (currentPath.length < 3) {
     if (currentPolyline) freehandLayer.removeLayer(currentPolyline);
+    currentPolyline = null;
+    currentPath = [];
     return;
   }
   
-  // Simplify path (reduce points for performance — low tolerance for accuracy)
+  // Simplify path (reduce points for performance)
   const simplified = simplifyPath(currentPath, 0.000005);
   
   if (currentPolyline) freehandLayer.removeLayer(currentPolyline);
@@ -123,7 +174,6 @@ function onMouseUp(e) {
     const last = simplified[simplified.length - 1];
     const prev = simplified[simplified.length - 2];
     
-    // Use SCREEN coordinates for proper rotation (lat/lng distorts angles)
     const lastPx = map.latLngToContainerPoint(last);
     const prevPx = map.latLngToContainerPoint(prev);
     const dx = lastPx.x - prevPx.x;
@@ -168,7 +218,6 @@ function deleteDrawing(drawingData) {
 
 function simplifyPath(points, tolerance) {
   if (points.length <= 2) return points;
-  // Douglas-Peucker simplification
   let maxDist = 0, maxIdx = 0;
   const first = points[0], last = points[points.length - 1];
   
@@ -236,8 +285,8 @@ function showFreehandPanel() {
   document.getElementById('map').appendChild(panel);
   
   // Stop clicks from propagating to map (prevent accidental drawing)
-  panel.addEventListener('mousedown', (e) => e.stopPropagation());
-  panel.addEventListener('click', (e) => e.stopPropagation());
+  L.DomEvent.disableClickPropagation(panel);
+  L.DomEvent.disableScrollPropagation(panel);
   
   // Wire events
   document.getElementById('freehand-close').onclick = () => deactivateFreehand();

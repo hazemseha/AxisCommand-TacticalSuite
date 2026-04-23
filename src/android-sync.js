@@ -1,20 +1,31 @@
 /**
- * android-sync.js — WiFi Direct & Bluetooth Sync for Android
+ * android-sync.js — WiFi Direct & Bluetooth Sync for Android (V2.0 — Secure)
+ * 
  * Uses Capacitor plugins when available, falls back gracefully on Electron.
  * 
+ * V2.0 Changes:
+ *   - Delta sync via getUpdatesSince() (no more full DB dumps)
+ *   - LWW conflict resolution via sync-engine.js
+ *   - AES-256-GCM encrypted payloads via crypto.js
+ *   - Per-peer lastSyncTime tracking
+ * 
  * Requires Capacitor plugins (Android only):
- * - @nicosabena/capacitor-wifi-direct (WiFi Direct)
- * - @nicosabena/capacitor-bluetooth-serial (Bluetooth)
+ *   - @nicosabena/capacitor-wifi-direct (WiFi Direct)
+ *   - @nicosabena/capacitor-bluetooth-serial (Bluetooth)
  * 
  * On Windows/Electron: this module is a no-op (silently skipped).
  */
 import { showToast } from './toast.js';
-import { getAllPins, getAllRoutes, getAllZones, savePin, saveRoute, saveZone, generateId } from './db.js';
+import {
+  getUpdatesSince, getLastSyncTime, setLastSyncTime,
+  getDeviceId, applyResolvedRecords
+} from './db.js';
+import { resolveConflicts, validateSyncPayload, formatSyncSummary } from './sync-engine.js';
+import { encrypt, decrypt, isEncryptionActive } from './crypto.js';
 
 let isAndroid = false;
 let wifiDirectPlugin = null;
 let bluetoothPlugin = null;
-let onDataReceived = null;
 
 // ===== INIT =====
 
@@ -96,13 +107,19 @@ export async function connectWifiDirect(deviceAddress) {
 }
 
 /**
- * Send data via WiFi Direct
+ * Send data via WiFi Direct — encrypted
  */
-export async function sendViaWifiDirect(data) {
+async function sendViaWifiDirect(data) {
   if (!wifiDirectPlugin) return false;
   
   try {
-    const payload = JSON.stringify(data);
+    let payload = JSON.stringify(data);
+    
+    // Encrypt if crypto key is active
+    if (isEncryptionActive()) {
+      payload = await encrypt(payload);
+    }
+    
     await wifiDirectPlugin.send({ data: payload });
     return true;
   } catch (e) {
@@ -142,12 +159,19 @@ export async function connectBluetooth(address) {
     showToast('✅ متصل عبر Bluetooth', 'success');
     
     // Listen for incoming data
-    bluetoothPlugin.addListener('dataReceived', (data) => {
+    bluetoothPlugin.addListener('dataReceived', async (data) => {
       try {
-        const parsed = JSON.parse(data.data);
-        handleReceivedData(parsed);
+        let payload = data.data;
+        
+        // Decrypt if encrypted
+        if (typeof payload === 'string' && payload.startsWith('ENC:')) {
+          payload = await decrypt(payload);
+        }
+        
+        const parsed = JSON.parse(payload);
+        await handleReceivedData(parsed);
       } catch (e) {
-        console.warn('[Bluetooth] Bad data:', e);
+        console.warn('[Bluetooth] Bad data received:', e);
       }
     });
     
@@ -160,13 +184,18 @@ export async function connectBluetooth(address) {
 }
 
 /**
- * Send data via Bluetooth
+ * Send data via Bluetooth — encrypted
  */
-export async function sendViaBluetooth(data) {
+async function sendViaBluetooth(data) {
   if (!bluetoothPlugin) return false;
   
   try {
-    const payload = JSON.stringify(data);
+    let payload = JSON.stringify(data);
+    
+    if (isEncryptionActive()) {
+      payload = await encrypt(payload);
+    }
+    
     await bluetoothPlugin.write({ data: payload });
     return true;
   } catch (e) {
@@ -175,23 +204,27 @@ export async function sendViaBluetooth(data) {
   }
 }
 
-// ===== SYNC OPERATIONS =====
+// ===== SYNC OPERATIONS (V2.0 — Delta + LWW) =====
 
 /**
- * Send all points to connected device (works with both WiFi Direct & Bluetooth)
+ * Sync data with connected device using delta + LWW.
+ * @param {string} method — 'wifi' or 'bluetooth'
+ * @param {string} [peerDeviceId] — remote device ID for delta tracking
  */
-export async function syncAllData(method = 'wifi') {
+export async function syncAllData(method = 'wifi', peerDeviceId = 'android-peer') {
   try {
-    const pins = await getAllPins();
-    const routes = await getAllRoutes();
-    const zones = await getAllZones();
+    // Step 1: Get delta since last sync with this peer
+    const lastSync = getLastSyncTime(peerDeviceId);
+    const delta = await getUpdatesSince(lastSync);
     
     const payload = {
       type: 'sync',
-      data: { pins, routes, zones },
-      timestamp: Date.now(),
+      delta: delta,
+      deviceId: getDeviceId(),
+      lastSyncTime: lastSync,
       app: 'PinVault',
-      version: '7.0'
+      version: '2.0',
+      timestamp: Date.now()
     };
     
     let success = false;
@@ -202,7 +235,8 @@ export async function syncAllData(method = 'wifi') {
     }
     
     if (success) {
-      showToast(`🔄 مزامنة: ${pins.length} نقطة + ${routes.length} مسار + ${zones.length} منطقة`, 'success');
+      const total = (delta.pins?.length || 0) + (delta.routes?.length || 0) + (delta.zones?.length || 0);
+      showToast(`🔄 مزامنة مشفرة: ${total} تحديث مرسل`, 'success');
     }
     
     return success;
@@ -214,41 +248,44 @@ export async function syncAllData(method = 'wifi') {
 }
 
 /**
- * Handle incoming sync data
+ * Handle incoming sync data — V2.0 with conflict resolution
  */
 async function handleReceivedData(payload) {
   if (payload.type !== 'sync' || payload.app !== 'PinVault') return;
   
-  let imported = { pins: 0, routes: 0, zones: 0 };
+  // Validate incoming payload
+  const validation = validateSyncPayload(payload.delta);
+  if (!validation.valid) {
+    console.error('[AndroidSync] Invalid sync payload:', validation.error);
+    showToast('❌ بيانات مزامنة غير صالحة', 'error');
+    return;
+  }
   
   try {
-    if (payload.data.pins) {
-      for (const pin of payload.data.pins) {
-        pin.id = generateId();
-        pin.syncedAt = Date.now();
-        await savePin(pin);
-        imported.pins++;
-      }
-    }
-    if (payload.data.routes) {
-      for (const route of payload.data.routes) {
-        route.id = generateId();
-        await saveRoute(route);
-        imported.routes++;
-      }
-    }
-    if (payload.data.zones) {
-      for (const zone of payload.data.zones) {
-        zone.id = generateId();
-        await saveZone(zone);
-        imported.zones++;
-      }
+    const remoteDeviceId = payload.deviceId || 'android-peer';
+    
+    // Step 1: Get our local state for comparison
+    const localData = await getUpdatesSince(0); // Full state for resolution
+    
+    // Step 2: Resolve conflicts using LWW
+    const { toApplyLocally, stats } = resolveConflicts(localData, payload.delta);
+    
+    // Step 3: Apply remote wins to local DB
+    if ((toApplyLocally.pins?.length || 0) + (toApplyLocally.routes?.length || 0) +
+        (toApplyLocally.zones?.length || 0) + (toApplyLocally.folders?.length || 0) > 0) {
+      const counts = await applyResolvedRecords(toApplyLocally);
+      console.log('[AndroidSync] Applied:', counts);
     }
     
-    showToast(`✅ استلام: ${imported.pins} نقطة + ${imported.routes} مسار + ${imported.zones} منطقة`, 'success');
+    // Step 4: Update sync timestamp for this peer
+    setLastSyncTime(remoteDeviceId, Date.now());
+    
+    const summary = formatSyncSummary(stats);
+    showToast(`✅ ${summary}`, 'success');
+    
   } catch (e) {
-    console.error('[Sync] Import failed:', e);
-    showToast('❌ فشل استيراد البيانات', 'error');
+    console.error('[AndroidSync] Sync import failed:', e);
+    showToast('❌ فشل استيراد بيانات المزامنة', 'error');
   }
 }
 

@@ -6,6 +6,7 @@
 import L from 'leaflet';
 import { showToast } from './toast.js';
 import { t } from './i18n.js';
+import { showTacticalConfirm } from './user-management.js';
 
 let map = null;
 let bftActive = false;
@@ -516,8 +517,11 @@ function createBFTPanel() {
   document.getElementById('bft-export-gpx').onclick = exportGPX;
   document.getElementById('bft-export-kml').onclick = exportKML;
   
-  document.getElementById('bft-clear-track').onclick = () => {
-    if (trackPoints.length > 0 && !confirm('هل تريد مسح المسار بالكامل؟')) return;
+  document.getElementById('bft-clear-track').onclick = async () => {
+    if (trackPoints.length > 0) {
+      const ok = await showTacticalConfirm('هل تريد مسح المسار بالكامل؟');
+      if (!ok) return;
+    }
     trackPoints = [];
     recordingStartTime = Date.now();
     if (trackLine) { bftLayer.removeLayer(trackLine); trackLine = null; }
