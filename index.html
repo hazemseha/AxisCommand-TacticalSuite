@@ -404,72 +404,97 @@
         </button>
       </div>
       
-      <div class="tactical-tools-grid">
-        <button id="btn-measure-tool" class="tactical-tool-btn" title="قياس المسافة والمساحة">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="measureTool">قياس</span>
-        </button>
-        <button id="btn-draw-circle" class="tactical-tool-btn" title="دائرة تكتيكية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="circleTool">دائرة</span>
-        </button>
-        <button id="btn-killbox" class="tactical-tool-btn" title="شبكة الكيل بوكس">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="killboxTool">كيل بوكس</span>
-        </button>
-        <button id="btn-azimuth" class="tactical-tool-btn" title="البوصلة التكتيكية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12,2 14.5,9 12,7 9.5,9" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="12" y2="6" stroke-width="2.5"/><line x1="12" y1="12" x2="16" y2="16" stroke-width="1.5" opacity="0.5"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="azimuthTool">بوصلة</span>
-        </button>
-        <button id="btn-mortar-fcs" class="tactical-tool-btn" title="نظام إدارة نار الهاون">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mortarTool">هاون</span>
-        </button>
-        <button id="btn-freehand" class="tactical-tool-btn" title="رموز تكتيكية">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;">رموز</span>
-        </button>
-        <button id="btn-range-rings" class="tactical-tool-btn" title="دوائر النطاق">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="10" stroke-dasharray="3 2"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="ringTool">نطاقات</span>
-        </button>
-        <button id="btn-mgrs" class="tactical-tool-btn" title="إحداثيات عسكرية MGRS">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M4.9 4.9l14.2 14.2" opacity="0.3"/></svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mgrsTool">MGRS</span>
-        </button>
-        <button id="btn-bft" class="tactical-tool-btn" title="التتبع الذاتي — Blue Force Tracking">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="12" cy="12" r="3" fill="#4285f4" stroke="#4285f4"/>
-            <circle cx="12" cy="12" r="7" stroke-dasharray="4 3"/>
-            <circle cx="12" cy="12" r="10" stroke-dasharray="2 3" opacity="0.4"/>
-            <line x1="12" y1="2" x2="12" y2="5" stroke-width="2.5" stroke="#4285f4"/>
-          </svg>
-          <span style="font-size: 0.75rem; margin-top: 4px;">GPS</span>
-        </button>
+      <!-- ═══ GROUP 1: Measurement & Navigation ═══ -->
+      <div class="tactical-group">
+        <div class="tactical-group-label">📏 قياس وملاحة</div>
+        <div class="tactical-tools-grid">
+          <button id="btn-measure-tool" class="tactical-tool-btn" title="قياس المسافة والمساحة">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="measureTool">قياس</span>
+          </button>
+          <button id="btn-draw-circle" class="tactical-tool-btn" title="دائرة تكتيكية">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="circleTool">دائرة</span>
+          </button>
+          <button id="btn-azimuth" class="tactical-tool-btn" title="البوصلة التكتيكية">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12,2 14.5,9 12,7 9.5,9" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="12" y2="6" stroke-width="2.5"/><line x1="12" y1="12" x2="16" y2="16" stroke-width="1.5" opacity="0.5"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="azimuthTool">بوصلة</span>
+          </button>
+          <button id="btn-mgrs" class="tactical-tool-btn" title="إحداثيات عسكرية MGRS">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M4.9 4.9l14.2 14.2" opacity="0.3"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mgrsTool">MGRS</span>
+          </button>
+          <button id="btn-range-rings" class="tactical-tool-btn" title="دوائر النطاق">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="10" stroke-dasharray="3 2"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="ringTool">نطاقات</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Street Names Toggle -->
-      <div style="margin-top: 8px;">
-        <button id="btn-street-labels" class="tactical-tool-btn" style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;" title="إظهار/إخفاء أسماء الشوارع">
-          <span style="font-size: 18px;">🏷️</span>
-          <span style="font-size: 0.8rem;">أسماء الشوارع</span>
-        </button>
+      <!-- ═══ GROUP 2: Warfare & Fire Control ═══ -->
+      <div class="tactical-group">
+        <div class="tactical-group-label">⚔️ أدوات قتالية</div>
+        <div class="tactical-tools-grid">
+          <button id="btn-killbox" class="tactical-tool-btn" title="شبكة الكيل بوكس">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="killboxTool">كيل بوكس</span>
+          </button>
+          <button id="btn-mortar-fcs" class="tactical-tool-btn" title="نظام إدارة نار الهاون">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="4 3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="mortarTool">هاون</span>
+          </button>
+          <button id="btn-los-tool" class="tactical-tool-btn" title="خط الرؤية — Line of Sight">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21" stroke-dasharray="4 3" opacity="0.5"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="losTool">خط الرؤية</span>
+          </button>
+          <button id="btn-draw-freehand" class="tactical-tool-btn" title="رسم حر وأسهم هجوم">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="freehandTool">رسم حر</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Track Recording -->
-      <div style="margin-top: 8px;">
-        <button id="btn-track-record" class="tactical-tool-btn" style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: rgba(255,68,68,0.3);" title="تسجيل مسار GPS">
-          <span style="font-size: 18px;">🔴</span>
-          <span style="font-size: 0.8rem;">تسجيل مسار GPS</span>
-        </button>
+      <!-- ═══ GROUP 3: Recon & Tracking ═══ -->
+      <div class="tactical-group">
+        <div class="tactical-group-label">🔍 مراقبة وتتبع</div>
+        <div class="tactical-tools-grid">
+          <button id="btn-bft" class="tactical-tool-btn" title="التتبع الذاتي — Blue Force Tracking">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="3" fill="#4285f4" stroke="#4285f4"/>
+              <circle cx="12" cy="12" r="7" stroke-dasharray="4 3"/>
+              <circle cx="12" cy="12" r="10" stroke-dasharray="2 3" opacity="0.4"/>
+              <line x1="12" y1="2" x2="12" y2="5" stroke-width="2.5" stroke="#4285f4"/>
+            </svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">GPS</span>
+          </button>
+          <button id="btn-spyglass" class="tactical-tool-btn" title="عدسة أسماء الشوارع — Street Glass">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M8 11h6" opacity="0.5"/><path d="M11 8v6" opacity="0.5"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;" data-i18n="spyglassTool">عدسة الشوارع</span>
+          </button>
+          <button id="btn-track-record" class="tactical-tool-btn" title="تسجيل مسار GPS" style="border-color: rgba(255,68,68,0.3);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6" fill="#ef4444" stroke="#ef4444"/><circle cx="12" cy="12" r="10"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">تسجيل مسار</span>
+          </button>
+          <button id="btn-street-labels" class="tactical-tool-btn" title="إظهار/إخفاء أسماء الشوارع">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">أسماء الشوارع</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Data Migration -->
-      <div style="margin-top: 8px;">
-        <button id="btn-migrate-data" class="tactical-tool-btn" style="width: 100%; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: rgba(6,214,160,0.3);" title="تشفير البيانات القديمة">
-          <span style="font-size: 18px;">🔐</span>
-          <span style="font-size: 0.8rem;">تشفير البيانات</span>
-        </button>
+      <!-- ═══ GROUP 4: System & Symbols ═══ -->
+      <div class="tactical-group">
+        <div class="tactical-group-label">🛡️ رموز ونظام</div>
+        <div class="tactical-tools-grid">
+          <button id="btn-freehand" class="tactical-tool-btn" title="رموز تكتيكية — NATO Figures">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 22,8 22,16 12,22 2,16 2,8"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="8" x2="22" y2="8"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">رموز عسكرية</span>
+          </button>
+          <button id="btn-migrate-data" class="tactical-tool-btn" title="تشفير البيانات القديمة" style="border-color: rgba(6,214,160,0.3);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+            <span style="font-size: 0.75rem; margin-top: 4px;">تشفير البيانات</span>
+          </button>
+        </div>
       </div>
       <div id="tactical-measure-panel" class="hidden">
         <div style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-top: 10px;">

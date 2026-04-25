@@ -452,10 +452,29 @@ body { position: relative; }
   color: #06d6a0;
 }
 
+.tactical-group {
+  margin-bottom: 6px;
+}
+
+.tactical-group-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  letter-spacing: 0.5px;
+  padding: 6px 4px 4px;
+  border-bottom: 1px solid rgba(6, 214, 160, 0.15);
+  margin-bottom: 8px;
+}
+
 .tactical-tools-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
+}
+
+/* Single item in last row spans full width */
+.tactical-tools-grid > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .tactical-tool-btn {
