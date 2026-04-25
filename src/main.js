@@ -1090,6 +1090,15 @@ async function init() {
         document.getElementById('btn-export-tactical')?.addEventListener('click', () => {
           exportTacticalEnvelope(0, mapInstance);
         });
+        // Wire Data Center collapsible toggle
+        document.getElementById('btn-data-center-toggle')?.addEventListener('click', () => {
+          const panel = document.getElementById('data-center-panel');
+          const chevron = document.getElementById('data-center-chevron');
+          if (panel) {
+            panel.classList.toggle('hidden');
+            if (chevron) chevron.style.transform = panel.classList.contains('hidden') ? '' : 'rotate(180deg)';
+          }
+        });
       })(),
       setupTacticalTools(mapInstance),
       loadAllFeatures(),
