@@ -13,6 +13,9 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Register native plugins BEFORE super.onCreate (Capacitor requirement)
+        registerPlugin(OtgProvisionPlugin.class);
+        
         super.onCreate(savedInstanceState);
         
         // TACTICAL SECURITY: Prevent screenshots and screen recording system-wide

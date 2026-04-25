@@ -14,7 +14,7 @@ import {
   initLibraryUI, openLibraryModal
 } from './features.js';
 import { setCurrentPin, renderVideoList, setupVideoUpload, closeVideoPlayer } from './video.js';
-import { setupShareControls } from './share.js';
+import { setupShareControls, exportTacticalEnvelope, importTacticalEnvelope } from './share.js';
 import { setupTacticalTools, stopToolModes } from './tactical.js';
 import { initLOS, toggleLOSMode, handleLOSClick } from './los.js';
 import { initSpyglass, toggleSpyglass } from './spyglass.js';
@@ -22,7 +22,6 @@ import { initKillBox, toggleKillBoxMode } from './killbox.js';
 import { initAzimuth, toggleAzimuthMode } from './azimuth.js';
 import { initMortarFCS, toggleMortarMode } from './mortar-fcs.js';
 import { initTacticalFigures, toggleTacticalFigures, deactivateTacticalFigures } from './tactical-figures.js';
-import { initFreehand, toggleFreehandMode } from './freehand.js';
 import { initRangeRings, toggleRangeRings } from './range-rings.js';
 import { initMGRS, toggleMGRS } from './mgrs.js';
 import { confirmAction, initConfirmModal } from './utils.js';
@@ -401,8 +400,8 @@ L.TileLayer.Offline = L.TileLayer.extend({
       const baseUrl = new URL('.', window.location.href).href;
       tilePath = new URL(`../tiles-cache/${layerType}/${z}/${x}/${y}${ext}`, baseUrl).href;
     } else {
-      // Web / portable: tiles-cache sits next to dist/
-      tilePath = `../tiles-cache/${layerType}/${z}/${x}/${y}${ext}`;
+      // Vite dev server or web: served from public/tiles-cache
+      tilePath = `/tiles-cache/${layerType}/${z}/${x}/${y}${ext}`;
     }
 
     tile.onload = function() { done(null, tile); };
@@ -454,8 +453,8 @@ function initMap() {
   window.isOfflineMode = true;
 
   // --- PLATFORM ADAPTIVE LAYERS ---
-  const offlineStreetUrl = '../tiles-cache/street/{z}/{x}/{y}.png';
-  const offlineSatelliteUrl = '../tiles-cache/satellite/{z}/{x}/{y}.jpg';
+  const offlineStreetUrl = '/tiles-cache/street/{z}/{x}/{y}.png';
+  const offlineSatelliteUrl = '/tiles-cache/satellite/{z}/{x}/{y}.jpg';
 
   if (isNativeMobile) {
     // ANDROID MODE: Dynamic injection after DB ready
@@ -1086,6 +1085,12 @@ async function init() {
       setupVideoUpload(),
       initLibraryUI(),
       setupShareControls(),
+      (async () => {
+        // Wire V2 tactical export button
+        document.getElementById('btn-export-tactical')?.addEventListener('click', () => {
+          exportTacticalEnvelope(0, mapInstance);
+        });
+      })(),
       setupTacticalTools(mapInstance),
       loadAllFeatures(),
       (async () => initLOS(mapInstance))(),
@@ -1097,7 +1102,6 @@ async function init() {
       (async () => initRangeRings(mapInstance))(),
       (async () => initMGRS(mapInstance))(),
       (async () => initBFT(mapInstance))(),
-      (async () => initFreehand(mapInstance))(),
       (async () => initQuickMenu(mapInstance))(),
       (async () => initStreetModes(mapInstance))()
     ];
@@ -1235,7 +1239,6 @@ function setupButtonListeners() {
     azimuth: () => { try { const b = document.getElementById('btn-azimuth'); if(b && b.classList.contains('active')) toggleAzimuthMode(); } catch(e){} },
     mortar: () => { try { const b = document.getElementById('btn-mortar-fcs'); if(b && b.classList.contains('active')) toggleMortarMode(); } catch(e){} },
     freehand: () => { try { deactivateTacticalFigures(); } catch(e){} },
-    'draw-freehand': () => { try { const b = document.getElementById('btn-draw-freehand'); if(b && b.classList.contains('active')) toggleFreehandMode(); } catch(e){} },
     rings: () => { try { const b = document.getElementById('btn-range-rings'); if(b && b.classList.contains('active')) toggleRangeRings(); } catch(e){} },
     mgrs: () => { try { const b = document.getElementById('btn-mgrs'); if(b && b.classList.contains('active')) toggleMGRS(); } catch(e){} },
     bft: () => { try { deactivateBFT(); } catch(e){} },
@@ -1282,7 +1285,6 @@ function setupButtonListeners() {
   safeListen('btn-range-rings', 'click', () => { activateTactical('rings'); if(activeTacticalKey==='rings') toggleRangeRings(); });
   safeListen('btn-mgrs', 'click', () => { activateTactical('mgrs'); if(activeTacticalKey==='mgrs') toggleMGRS(); });
   safeListen('btn-bft', 'click', () => { activateTactical('bft'); if(activeTacticalKey==='bft') toggleBFT(); });
-  safeListen('btn-draw-freehand', 'click', () => { activateTactical('draw-freehand'); if(activeTacticalKey==='draw-freehand') toggleFreehandMode(); });
 
   // Street Labels Toggle
   safeListen('btn-street-labels', 'click', toggleStreetLabels);
