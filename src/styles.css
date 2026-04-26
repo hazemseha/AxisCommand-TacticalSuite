@@ -4369,17 +4369,20 @@ body.print-mode #tactical-reticle {
    Hides all UI chrome, leaving only the map for TV/projector casting
    ==================================================================== */
 
-body.toc-mode .header,
-body.toc-mode .sidebar,
+body.toc-mode #header,
+body.toc-mode #sidebar,
+body.toc-mode #tactical-sidebar,
 body.toc-mode .leaflet-control-zoom,
+body.toc-mode .leaflet-control-scale,
+body.toc-mode .leaflet-control-attribution,
 body.toc-mode #quick-radial-menu,
 body.toc-mode #tactical-reticle,
 body.toc-mode .tactical-sidebar-toggle,
 body.toc-mode .mortar-panel,
 body.toc-mode #los-panel,
-body.toc-mode .leaflet-control-attribution,
 body.toc-mode #weather-widget,
-body.toc-mode .night-ops-filter {
+body.toc-mode .night-ops-filter,
+body.toc-mode .leaflet-pm-toolbar {
   display: none !important;
 }
 
