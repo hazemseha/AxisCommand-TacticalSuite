@@ -1,0 +1,3 @@
+# Chunk databases are downloaded per-zoom-level here.
+# Run: node download-google-sat.js --zoom 16
+# Then: node merge-mbtiles.js
