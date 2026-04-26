@@ -4245,3 +4245,121 @@ body[data-print-size="a3"][data-print-orient="landscape"] { page: a3-l; }
   color: #ff6666;
   border-color: rgba(255, 68, 68, 0.3);
 }
+
+/* ===== TACTICAL CENTER RETICLE ===== */
+#tactical-reticle {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  z-index: 800; /* Above map (400), below modals (9000+) */
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+#tactical-reticle:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+#tactical-reticle:active {
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+.reticle-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(6, 214, 160, 0.35);
+  animation: reticle-breathe 3s ease-in-out infinite;
+}
+
+.reticle-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(6, 214, 160, 0.8);
+  box-shadow: 0 0 6px rgba(6, 214, 160, 0.5), 0 0 12px rgba(6, 214, 160, 0.2);
+}
+
+.reticle-crosshair {
+  position: absolute;
+  background: rgba(6, 214, 160, 0.3);
+}
+
+.reticle-h {
+  width: 10px;
+  height: 1px;
+  top: 50%;
+  left: 2px;
+  transform: translateY(-0.5px);
+}
+
+.reticle-h::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 1px;
+  background: rgba(6, 214, 160, 0.3);
+  right: -32px;
+}
+
+.reticle-v {
+  width: 1px;
+  height: 10px;
+  left: 50%;
+  top: 2px;
+  transform: translateX(-0.5px);
+}
+
+.reticle-v::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 10px;
+  background: rgba(6, 214, 160, 0.3);
+  bottom: -32px;
+}
+
+@keyframes reticle-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Hide reticle during print/modal overlay */
+.modal:not(.hidden) ~ #tactical-reticle,
+body.print-mode #tactical-reticle {
+  display: none;
+}
+
+/* ===== SHARE BUTTON (Feature Modal) ===== */
+.btn-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-share:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.btn-share:active {
+  transform: scale(0.96);
+}

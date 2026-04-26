@@ -138,7 +138,7 @@ function cancelTimer() {
   }
 }
 
-function showMenu(x, y) {
+export function showMenu(x, y) {
   if (!menuEl) return;
   
   const items = QUICK_ACTIONS;

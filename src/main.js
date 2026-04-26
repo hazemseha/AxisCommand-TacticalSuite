@@ -38,7 +38,7 @@ import { hasUser, getUserProfile, registerUser, login, isAuthenticated, logout, 
 import { initBFT, toggleBFT, deactivateBFT } from './blueforce.js';
 import { executePrint, updatePrintFrame } from './print-engine.js';
 import { requireAdminPin, buildUserListUI, showTacticalPrompt, showTacticalAlert, showTacticalConfirm, delay } from './user-management.js';
-import { initQuickMenu } from './quickmenu.js';
+import { initQuickMenu, showMenu as showQuickMenu } from './quickmenu.js';
 import { initStreetModes, toggleStreetLabels } from './streetmodes.js';
 import { showAuthScreen } from './auth-screen.js';
 import { setupIconPicker, openFeatureModal, closePinModal, savePinFromModal, deletePinFromModal, openDownloadModal, closeDownloadModal, updateDownloadEstimate, startDownload, getCurrentEditPin, setCurrentEditPin } from './feature-modal.js';
@@ -1364,6 +1364,55 @@ function setupButtonListeners() {
   // Persistence Actions
   safeListen('btn-save-pin', 'click', savePinFromModal);
   safeListen('btn-delete-pin', 'click', deletePinFromModal);
+
+  // ===== SHARE FEATURE BUTTON =====
+  safeListen('btn-share-feature', 'click', () => {
+    const feature = getCurrentEditPin();
+    if (!feature) return;
+    const shareData = {
+      id: feature.id,
+      type: feature.collType || 'pins',
+      name: feature.name || 'Unnamed',
+      coords: feature.lat ? { lat: feature.lat, lng: feature.lng } : (feature.latlngs || null),
+      color: feature.color,
+      icon: feature.type,
+      description: feature.description || '',
+      folderId: feature.folderId || 'root'
+    };
+    console.log('[AxisCommand] 📡 Feature Share Data:', JSON.stringify(shareData, null, 2));
+    
+    // Copy coordinates to clipboard for quick sharing
+    const coordText = feature.lat
+      ? `${feature.name || 'Pin'}: ${feature.lat.toFixed(6)}, ${feature.lng.toFixed(6)}`
+      : `${feature.name || 'Feature'}: [Shape Data]`;
+    navigator.clipboard.writeText(coordText).then(() => {
+      showToast('📡 ' + (t('featureShared') || 'تم نسخ بيانات العنصر'), 'success');
+    }).catch(() => {
+      showToast('📡 ' + coordText, 'info');
+    });
+  });
+
+  // ===== TACTICAL RETICLE → Quick Menu =====
+  const reticle = document.getElementById('tactical-reticle');
+  if (reticle) {
+    const triggerQuickMenu = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const mapEl = document.getElementById('map');
+      if (!mapEl) return;
+      const rect = mapEl.getBoundingClientRect();
+      // Center of the map viewport
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      showQuickMenu(cx, cy);
+      if (navigator.vibrate) navigator.vibrate(20);
+    };
+    reticle.addEventListener('click', triggerQuickMenu);
+    reticle.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      triggerQuickMenu(e);
+    }, { passive: false });
+  }
   safeListen('btn-start-download', 'click', startDownload);
   safeListen('btn-city-search', 'click', searchCityBounds);
 
