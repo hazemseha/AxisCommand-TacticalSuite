@@ -849,43 +849,7 @@ function updateModeUI() {
   if (pinBanner) pinBanner.classList.toggle('hidden', !pinMode);
   if (cityPanel) cityPanel.classList.toggle('hidden', !selectAreaMode);
   
-  // Floating Cancel FAB for mobile — always accessible
-  let cancelFab = document.getElementById('tool-cancel-fab');
-  if (!cancelFab) {
-    cancelFab = document.createElement('button');
-    cancelFab.id = 'tool-cancel-fab';
-    cancelFab.innerHTML = '✕ إلغاء';
-    cancelFab.style.cssText = `
-      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-      z-index: 9999; padding: 12px 28px; border-radius: 30px;
-      background: rgba(239, 68, 68, 0.9); color: #fff; border: 2px solid #fff;
-      font-size: 1rem; font-weight: bold; cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-      touch-action: manipulation; -webkit-tap-highlight-color: rgba(255,0,0,0.3);
-      display: none;
-    `;
-    document.body.appendChild(cancelFab);
-    
-    // Use BOTH click and touchstart for maximum responsiveness
-    const cancelAllModes = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      pinMode = false;
-      routeMode = false;
-      zoneMode = false;
-      selectAreaMode = false;
-      textMode = false;
-      try { map.pm.disableDraw(); } catch(err) {}
-      updateModeUI();
-      showToast('❌ تم إلغاء الأداة', 'info');
-    };
-    cancelFab.addEventListener('click', cancelAllModes);
-    cancelFab.addEventListener('touchstart', cancelAllModes, { passive: false });
-  }
   
-  const anyToolActive = pinMode || routeMode || zoneMode || selectAreaMode || textMode;
-  cancelFab.style.display = anyToolActive ? 'block' : 'none';
-
   if (selectAreaMode || textMode) {
     document.getElementById('map').style.cursor = 'crosshair';
   } else {
