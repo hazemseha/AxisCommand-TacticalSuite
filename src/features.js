@@ -98,7 +98,16 @@ export function getFeatureIconHtml(type, color, customIconData) {
     'konkurs': 'assets/icons/konkurs.png',
     'kornet': 'assets/icons/kornet.png',
     'su23': 'assets/icons/su23.png',
-    'fpv_operator': 'assets/icons/fpv_operator.png'
+    'fpv_operator': 'assets/icons/fpv_operator.png',
+    'rpg_team': 'assets/icons/rpg_team.svg',
+    'hangar': 'assets/icons/hangar.svg',
+    'tank': 'assets/icons/tank.svg',
+    'sniper_team': 'assets/icons/sniper_team.svg',
+    'kornet_atgm': 'assets/icons/kornet_atgm.svg',
+    'konkurs_atgm': 'assets/icons/konkurs_atgm.svg',
+    'medium_weapon': 'assets/icons/medium_weapon.svg',
+    'howitzer': 'assets/icons/howitzer.svg',
+    'drone_operator': 'assets/icons/drone_operator.svg'
   };
 
   if (type === 'custom' && customIconData) {
@@ -831,6 +840,15 @@ const ICON_METADATA = [
   { id: 'kornet', name: 'Kornet ATGM', emoji: '🔱', group: 'Primary' },
   { id: 'su23', name: 'SU-23 AA Gun', emoji: '🚜', group: 'Primary' },
   { id: 'fpv_operator', name: 'FPV Unit (Suicide Drone)', emoji: '💥', group: 'Primary' },
+  { id: 'rpg_team', name: 'ار بي جي (RPG)', emoji: '🚀', group: 'Primary' },
+  { id: 'hangar', name: 'حظيرة (Hangar)', emoji: '🏭', group: 'Primary' },
+  { id: 'tank', name: 'دبابة (Tank)', emoji: '🚂', group: 'Primary' },
+  { id: 'sniper_team', name: 'قناص (Sniper)', emoji: '🎯', group: 'Primary' },
+  { id: 'kornet_atgm', name: 'كورنيت (Kornet)', emoji: '🔱', group: 'Primary' },
+  { id: 'konkurs_atgm', name: 'كونكرس (Konkurs)', emoji: '🛡️', group: 'Primary' },
+  { id: 'medium_weapon', name: 'متوسط (Medium)', emoji: '⚔️', group: 'Primary' },
+  { id: 'howitzer', name: 'مدفع هاوتزر (Howitzer)', emoji: '💣', group: 'Primary' },
+  { id: 'drone_operator', name: 'مشغل درون (Drone Op)', emoji: '🕹️', group: 'Primary' },
   { id: 'default', name: 'Operational Pin', emoji: '📍', group: 'Status' },
   { id: 'crosshair', name: 'Target / Objective', emoji: '🎯', group: 'Status' },
   { id: 'warning', name: 'Danger / Warning', emoji: '⚠️', group: 'Status' },
