@@ -1,11 +1,11 @@
 {
-  "name": "offline-map-app",
-  "version": "0.0.0",
+  "name": "axiscommand-tactical",
+  "version": "2.0.1",
   "private": true,
   "type": "module",
   "main": "electron-main.cjs",
   "author": "Tactical Operations Command",
-  "description": "PinVault Tactical Suite - Offline Field Mapping",
+  "description": "AxisCommand Tactical Suite V2 - Offline Field Mapping",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -17,7 +17,7 @@
   },
   "build": {
     "appId": "com.pinvault.tactical",
-    "productName": "PinVault-Tactical",
+    "productName": "AxisCommand-Tactical",
     "directories": {
       "output": "release-builds"
     },
@@ -34,12 +34,12 @@
         ]
       }
     ],
+    "forceCodeSigning": false,
     "win": {
       "target": [
         "portable"
       ],
-      "icon": "public/icon.ico",
-      "cscLink": null
+      "signAndEditExecutable": false
     },
     "npmRebuild": false
   },
@@ -48,8 +48,9 @@
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
     "@capacitor/filesystem": "^8.1.2",
+    "app-builder-bin": "^4.2.0",
     "electron": "^33.4.11",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.8.1",
     "sharp": "^0.34.5",
     "vite": "^8.0.1"
   },
