@@ -848,7 +848,7 @@ export function renderIconPicker(filter = '') {
   const currentVal = document.getElementById('feature-icon').value;
   listEl.innerHTML = '';
 
-  const groups = { 'Status': [], 'Custom': [], 'Library': [] };
+  const groups = { 'Primary': [], 'Status': [], 'Custom': [], 'Library': [] };
   
   // Basic Icons
   ICON_METADATA.forEach(icon => {
@@ -864,7 +864,7 @@ export function renderIconPicker(filter = '') {
     }
   });
 
-  ['Library', 'Status', 'Custom'].forEach(groupName => {
+  ['Primary', 'Library', 'Status', 'Custom'].forEach(groupName => {
     const items = groups[groupName];
     if (items.length === 0) return;
 
