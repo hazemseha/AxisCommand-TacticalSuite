@@ -27,6 +27,7 @@ const QUICK_ACTIONS = [
   { icon: '🔵', label: 'GPS', action: 'bft' },
   { icon: '📍', label: 'مسار', action: 'route' },
   { icon: '🔍', label: 'عدسة', action: 'spyglass' },
+  { icon: '📺', label: 'عرض', action: 'toc' },
 ];
 
 export function initQuickMenu(mapInstance) {
@@ -239,6 +240,7 @@ function activateAction(action) {
     'bft': 'btn-bft',
     'route': 'btn-add-route',
     'spyglass': 'btn-spyglass',
+    'toc': 'btn-enter-toc',
   };
   
   // Tactical tools that need the sidebar open

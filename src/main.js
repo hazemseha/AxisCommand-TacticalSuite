@@ -41,6 +41,7 @@ import { requireAdminPin, buildUserListUI, showTacticalPrompt, showTacticalAlert
 import { initQuickMenu, showMenu as showQuickMenu } from './quickmenu.js';
 import { initStreetModes, toggleStreetLabels } from './streetmodes.js';
 import { showAuthScreen } from './auth-screen.js';
+import { initTocMode } from './toc-mode.js';
 import { setupIconPicker, openFeatureModal, closePinModal, savePinFromModal, deletePinFromModal, openDownloadModal, closeDownloadModal, updateDownloadEstimate, startDownload, getCurrentEditPin, setCurrentEditPin } from './feature-modal.js';
 
 // ===== INTERNET LOCKDOWN — DYNAMIC ADMIN PIN =====
@@ -1112,7 +1113,8 @@ async function init() {
       (async () => initMGRS(mapInstance))(),
       (async () => initBFT(mapInstance))(),
       (async () => initQuickMenu(mapInstance))(),
-      (async () => initStreetModes(mapInstance))()
+      (async () => initStreetModes(mapInstance))(),
+      (async () => initTocMode(mapInstance))()
     ];
 
     await Promise.all(moduleBatch.map(p => Promise.resolve(p).catch(e => console.warn("Module Load Error", e))));

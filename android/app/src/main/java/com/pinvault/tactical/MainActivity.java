@@ -15,14 +15,12 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // Register native plugins BEFORE super.onCreate (Capacitor requirement)
         registerPlugin(OtgProvisionPlugin.class);
+        registerPlugin(ScreenSecurityPlugin.class);
         
         super.onCreate(savedInstanceState);
         
-        // TACTICAL SECURITY: Prevent screenshots and screen recording system-wide
-        getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        );
+        // NOTE: FLAG_SECURE is intentionally DISABLED to allow TOC screen casting.
+        // Security is handled at the JS layer via the mirror-lockdown + re-auth flow.
         
         // IMMERSIVE STICKY FULL-SCREEN: Hide status bar + navigation bar
         enableImmersiveMode();
