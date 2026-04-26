@@ -298,8 +298,8 @@ function bindPopup(layer, rec) {
   content.innerHTML = `
     <div style="font-weight:bold; margin-bottom: 5px;">${rec.name || t('unnamedPin') || 'Unnamed Feature'}</div>
     <div style="display:flex; gap: 5px;">
-      <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.7rem;" data-action="edit">${t('editPin') || 'Edit'}</button>
-      <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" data-action="delete">${t('delete') || 'Delete'}</button>
+      <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.7rem;" data-action="edit">${t('editPin') || 'تعديل'}</button>
+      <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" data-action="delete">${t('delete') || 'حذف'}</button>
     </div>
   `;
   content.querySelector('[data-action="edit"]').onclick = () => { layer.closePopup(); onFeatureSelect(rec); };
@@ -742,7 +742,7 @@ async function renderItemsToBody(items, container) {
     
     const nameDiv = document.createElement('div');
     nameDiv.className = 'pin-card-name';
-    nameDiv.textContent = item.name || 'Unnamed';
+    nameDiv.textContent = item.name || t('unnamedPin') || 'بدون اسم';
     
     const rightControls = document.createElement('div');
     rightControls.style.display = 'flex';
@@ -761,12 +761,12 @@ async function renderItemsToBody(items, container) {
     delBtn.style.fontSize = '0.7rem';
     delBtn.style.background = 'rgba(255, 0, 0, 0.1)';
     delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-    delBtn.title = 'Delete';
+    delBtn.title = t('delete') || 'حذف';
     delBtn.onclick = async (e) => {
       e.stopPropagation();
       
       // Use the custom non-blocking confirm dialog to prevent window blur
-      const isConfirmed = await showTacticalConfirm(`Permanently delete "${item.name || 'this item'}"?`);
+      const isConfirmed = await showTacticalConfirm(`${t('confirmDeleteItem') || 'حذف نهائي'} "${item.name || t('unnamedPin') || 'هذا العنصر'}"?`);
 
       if (isConfirmed) {
         // Find and remove map layer first
@@ -778,7 +778,7 @@ async function renderItemsToBody(items, container) {
           }
         }
         await hardRemoveFeature(item);
-        showToast(t('itemDeleted') || 'Item deleted successfully', 'success');
+        showToast(t('itemDeleted') || 'تم حذف العنصر بنجاح', 'success');
       }
     };
     rightControls.appendChild(delBtn);

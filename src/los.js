@@ -58,17 +58,27 @@ export async function loadBuildingData() {
  */
 function getBuildingHeight(lat, lon) {
   if (!buildingGrid) return 0;
-  const key = `${Math.floor(lat / GRID_SIZE)}_${Math.floor(lon / GRID_SIZE)}`;
-  const cell = buildingGrid[key];
-  if (!cell) return 0;
   
-  // Find nearest building within its radius
+  // Check current cell AND all 8 neighbors for comprehensive coverage
+  const baseCellLat = Math.floor(lat / GRID_SIZE);
+  const baseCellLon = Math.floor(lon / GRID_SIZE);
   let maxHeight = 0;
-  for (const b of cell) {
-    const dLat = Math.abs(b.lat - lat);
-    const dLon = Math.abs(b.lon - lon);
-    if (dLat <= b.r && dLon <= b.r) {
-      if (b.h > maxHeight) maxHeight = b.h;
+  
+  for (let dLat = -1; dLat <= 1; dLat++) {
+    for (let dLon = -1; dLon <= 1; dLon++) {
+      const key = `${baseCellLat + dLat}_${baseCellLon + dLon}`;
+      const cell = buildingGrid[key];
+      if (!cell) continue;
+      
+      for (const b of cell) {
+        const distLat = Math.abs(b.lat - lat);
+        const distLon = Math.abs(b.lon - lon);
+        // Use circular radius check (not rectangular)
+        const distDeg = Math.sqrt(distLat * distLat + distLon * distLon);
+        if (distDeg <= b.r) {
+          if (b.h > maxHeight) maxHeight = b.h;
+        }
+      }
     }
   }
   return maxHeight;

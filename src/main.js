@@ -1366,30 +1366,24 @@ function setupButtonListeners() {
   safeListen('btn-delete-pin', 'click', deletePinFromModal);
 
   // ===== SHARE FEATURE BUTTON =====
-  safeListen('btn-share-feature', 'click', () => {
+  safeListen('btn-share-feature', 'click', async () => {
     const feature = getCurrentEditPin();
     if (!feature) return;
-    const shareData = {
-      id: feature.id,
-      type: feature.collType || 'pins',
-      name: feature.name || 'Unnamed',
-      coords: feature.lat ? { lat: feature.lat, lng: feature.lng } : (feature.latlngs || null),
-      color: feature.color,
-      icon: feature.type,
-      description: feature.description || '',
-      folderId: feature.folderId || 'root'
-    };
-    console.log('[AxisCommand] 📡 Feature Share Data:', JSON.stringify(shareData, null, 2));
     
-    // Copy coordinates to clipboard for quick sharing
-    const coordText = feature.lat
-      ? `${feature.name || 'Pin'}: ${feature.lat.toFixed(6)}, ${feature.lng.toFixed(6)}`
-      : `${feature.name || 'Feature'}: [Shape Data]`;
-    navigator.clipboard.writeText(coordText).then(() => {
-      showToast('📡 ' + (t('featureShared') || 'تم نسخ بيانات العنصر'), 'success');
-    }).catch(() => {
-      showToast('📡 ' + coordText, 'info');
-    });
+    try {
+      // Close modal first to prevent UI conflicts with export modal
+      closePinModal();
+      
+      // Use the existing encrypted tactical export, scoped to feature's folder
+      const { exportTacticalEnvelope } = await import('./share.js');
+      await exportTacticalEnvelope(0, null, {
+        folderId: feature.folderId || 'root',
+        folderName: feature.name || t('unnamedPin') || 'Feature'
+      });
+    } catch (err) {
+      console.error('[AxisCommand] Share failed:', err);
+      showToast('⚠️ ' + (t('exportFailed') || 'فشل التصدير'), 'error');
+    }
   });
 
   // ===== TACTICAL RETICLE → Quick Menu =====

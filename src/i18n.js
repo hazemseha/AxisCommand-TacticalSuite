@@ -120,6 +120,9 @@ const translations = {
     
     // Confirm
     confirmDelete: 'Delete this pin and all its videos?',
+    confirmDeleteItem: 'Permanently delete',
+    itemDeleted: 'Item deleted successfully',
+    featureShared: 'Feature data copied to clipboard',
     
     // Misc
     uploaded: 'Uploaded',
@@ -386,6 +389,9 @@ const translations = {
     
     // Confirm
     confirmDelete: 'هل تريد حذف هذا الدبوس وجميع فيديوهاته؟',
+    confirmDeleteItem: 'حذف نهائي',
+    itemDeleted: 'تم حذف العنصر بنجاح',
+    featureShared: 'تم نسخ بيانات العنصر',
     
     // Misc
     uploaded: 'تم الرفع',
