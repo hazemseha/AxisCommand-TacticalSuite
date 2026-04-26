@@ -117,6 +117,7 @@ const translations = {
     // Popups
     open: 'Open',
     delete: 'Delete',
+    share: 'Share',
     
     // Confirm
     confirmDelete: 'Delete this pin and all its videos?',
@@ -386,6 +387,7 @@ const translations = {
     // Popups
     open: 'فتح',
     delete: 'حذف',
+    share: 'مشاركة',
     
     // Confirm
     confirmDelete: 'هل تريد حذف هذا الدبوس وجميع فيديوهاته؟',

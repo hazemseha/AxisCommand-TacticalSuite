@@ -300,10 +300,24 @@ function bindPopup(layer, rec) {
     <div style="display:flex; gap: 5px;">
       <button class="btn btn-primary" style="padding: 2px 6px; font-size: 0.7rem;" data-action="edit">${t('editPin') || 'تعديل'}</button>
       <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" data-action="delete">${t('delete') || 'حذف'}</button>
+      <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.7rem; color: #38bdf8; border-color: rgba(56,189,248,0.4);" data-action="share">📡 ${t('share') || 'مشاركة'}</button>
     </div>
   `;
   content.querySelector('[data-action="edit"]').onclick = () => { layer.closePopup(); onFeatureSelect(rec); };
   content.querySelector('[data-action="delete"]').onclick = () => { layer.closePopup(); map.removeLayer(layer); hardRemoveFeature(rec); };
+  content.querySelector('[data-action="share"]').onclick = async () => {
+    layer.closePopup();
+    try {
+      const { exportTacticalEnvelope } = await import('./share.js');
+      await exportTacticalEnvelope(0, null, {
+        folderId: rec.folderId || 'root',
+        folderName: rec.name || t('unnamedPin') || 'Feature'
+      });
+    } catch (err) {
+      console.error('[Share] Failed:', err);
+      showToast('⚠️ ' + (t('exportFailed') || 'فشل التصدير'), 'error');
+    }
+  };
   layer.bindPopup(content);
 }
 
