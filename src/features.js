@@ -113,7 +113,12 @@ export function getFeatureIconHtml(type, color, customIconData) {
   } else if (TACTICAL_ASSETS[type]) {
     // Priority 1: Burned-in Tactical Assets
     const path = TACTICAL_ASSETS[type];
-    inner = `<img src="${path}" style="width:100%; height:100%; object-fit:contain; filter:drop-shadow(0px 2px 2px rgba(0,0,0,0.8));" />`;
+    if (path.endsWith('.svg')) {
+      // SVG: Use CSS masking so the user-selected color applies
+      inner = `<div style="width:100%; height:100%; background-color:${color || DEFAULT_COLOR}; -webkit-mask-image: url('${path}'); mask-image: url('${path}'); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; filter:drop-shadow(0px 2px 3px rgba(0,0,0,0.6));"></div>`;
+    } else {
+      inner = `<img src="${path}" style="width:100%; height:100%; object-fit:contain; filter:drop-shadow(0px 2px 2px rgba(0,0,0,0.8));" />`;
+    }
   } else if (customTacticalIcons.find(i => i.id === type)) {
     // Priority 2: User-added Tactical Library
     const iconRec = customTacticalIcons.find(i => i.id === type);
