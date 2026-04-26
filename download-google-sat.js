@@ -157,6 +157,15 @@ function askQuestion(query) {
 // STEALTH TILE FETCHER
 // ═══════════════════════════════════════════════════════════════
 
+// Custom error class to distinguish empty/sea tiles from real failures
+class EmptyTileError extends Error {
+  constructor(z, x, y, status) {
+    super(`HTTP ${status} (empty/sea) Z${z}/X${x}/Y${y}`);
+    this.name = 'EmptyTileError';
+    this.status = status;
+  }
+}
+
 let serverIdx = 0;
 function getNextServer() {
   return CONFIG.servers[serverIdx++ % CONFIG.servers.length];
@@ -171,7 +180,14 @@ function fetchTile(z, x, y) {
     const client = url.startsWith('https') ? https : http;
     
     const req = client.get(url, { headers: CONFIG.headers, timeout: 15000 }, (res) => {
+      if (res.statusCode === 404) {
+        // 404 = No satellite data for this tile (sea/empty area)
+        reject(new EmptyTileError(z, x, y, 404));
+        res.resume();
+        return;
+      }
       if (res.statusCode !== 200) {
+        // 403/429/500 = Real failure, should retry
         reject(new Error(`HTTP ${res.statusCode} for Z${z}/X${x}/Y${y}`));
         res.resume();
         return;
@@ -242,6 +258,7 @@ async function downloadZoomChunk(zoom) {
   
   const totalTiles = tasks.length;
   let downloaded = 0;
+  let emptySkipped = 0;
   let failed = 0;
   const failedQueue = [];
   let totalRawBytes = 0;
@@ -278,19 +295,24 @@ async function downloadZoomChunk(zoom) {
     for (let j = 0; j < results.length; j++) {
       if (results[j].status === 'fulfilled') {
         downloaded++;
+      } else if (results[j].reason instanceof EmptyTileError) {
+        // 404 = empty/sea tile — skip silently, don't retry
+        emptySkipped++;
       } else {
+        // Real failure (403/429/500/timeout) — queue for retry
         failed++;
         failedQueue.push(batch[j]);
       }
     }
     
     // Progress
-    const pct = ((downloaded / totalTiles) * 100).toFixed(1);
+    const processed = downloaded + emptySkipped;
+    const pct = ((processed / totalTiles) * 100).toFixed(1);
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
-    const speed = (downloaded / Math.max(1, elapsed)).toFixed(1);
+    const speed = (processed / Math.max(1, elapsed)).toFixed(1);
     const ratio = totalRawBytes > 0 ? ((1 - totalCompressedBytes / totalRawBytes) * 100).toFixed(0) : 0;
     process.stdout.write(
-      `\r  📡 ${downloaded}/${totalTiles} (${pct}%) | ❌ ${failed} | ⏱️ ${elapsed}s | ${speed} t/s | WebP: -${ratio}%`
+      `\r  📡 ${downloaded}/${totalTiles} (${pct}%) | 🌊 ${emptySkipped} sea | ❌ ${failed} | ⏱️ ${elapsed}s | ${speed} t/s | -${ratio}%`
     );
     
     await sleep(randomDelay());
@@ -350,25 +372,29 @@ async function downloadZoomChunk(zoom) {
     ? ((1 - totalCompressedBytes / totalRawBytes) * 100).toFixed(1)
     : '0';
   
-  console.log(`\n╔═══════════════════════════════════════════════╗`);
-  console.log(`║  📊 CHUNK Z${String(zoom).padStart(2)} — DOWNLOAD SUMMARY           ║`);
-  console.log(`╠═══════════════════════════════════════════════╣`);
-  console.log(`║  Expected:     ${String(totalTiles).padStart(10).padEnd(30)}║`);
-  console.log(`║  Downloaded:   ${String(downloaded).padStart(10).padEnd(30)}║`);
-  console.log(`║  Failed:       ${String(totalTiles - downloaded).padStart(10).padEnd(30)}║`);
-  console.log(`║  File size:    ${(fileSizeMB + ' MB').padStart(10).padEnd(30)}║`);
-  console.log(`║  Compression:  ${(compressionRatio + '% smaller').padStart(10).padEnd(30)}║`);
-  console.log(`║  Time:         ${(elapsed + ' min').padStart(10).padEnd(30)}║`);
-  console.log(`╚═══════════════════════════════════════════════╝`);
+  const actualTiles = totalTiles - emptySkipped; // tiles that actually have data
   
-  if (downloaded === totalTiles) {
-    console.log(`\n✅ Chunk Z${zoom} complete! File: chunks/tripoli-sat-Z${zoom}.db`);
-  } else {
-    console.log(`\n⚠️  Chunk Z${zoom} incomplete — ${totalTiles - downloaded} tiles missing.`);
+  console.log(`\n╔═══════════════════════════════════════════════════╗`);
+  console.log(`║  📊 CHUNK Z${String(zoom).padStart(2)} — DOWNLOAD SUMMARY               ║`);
+  console.log(`╠═══════════════════════════════════════════════════╣`);
+  console.log(`║  Total tiles:    ${String(totalTiles).padStart(10).padEnd(32)}║`);
+  console.log(`║  Downloaded:     ${String(downloaded).padStart(10).padEnd(32)}║`);
+  console.log(`║  Empty/Sea (🌊): ${String(emptySkipped).padStart(10).padEnd(32)}║`);
+  console.log(`║  Failed (❌):    ${String(failed).padStart(10).padEnd(32)}║`);
+  console.log(`║  File size:      ${(fileSizeMB + ' MB').padStart(10).padEnd(32)}║`);
+  console.log(`║  Compression:    ${(compressionRatio + '% smaller').padStart(10).padEnd(32)}║`);
+  console.log(`║  Time:           ${(elapsed + ' min').padStart(10).padEnd(32)}║`);
+  console.log(`╚═══════════════════════════════════════════════════╝`);
+  
+  if (downloaded + emptySkipped === totalTiles) {
+    console.log(`\n✅ Chunk Z${zoom} complete! (${emptySkipped} sea tiles skipped)`);
+    console.log(`   File: chunks/tripoli-sat-Z${zoom}.db`);
+  } else if (failed > 0) {
+    console.log(`\n⚠️  Chunk Z${zoom} has ${failed} real failures (not sea tiles).`);
     console.log(`   Re-run with: node download-google-sat.js --zoom ${zoom}`);
   }
   
-  return { totalTiles, downloaded };
+  return { totalTiles, downloaded, emptySkipped, failed };
 }
 
 // ═══════════════════════════════════════════════════════════════
