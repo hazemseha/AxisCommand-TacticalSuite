@@ -9,6 +9,9 @@ export default defineConfig({
     }
   },
   build: {
+    // Skip copying public/ to dist/ — large HGT elevation files (50MB+)
+    // cause build hangs. Static assets are copied manually post-build.
+    copyPublicDir: false,
     // ENSURE ALL CAPACITOR PLUGINS ARE BUNDLED
     // Previous configuration was incorrectly marking them as external,
     // causing "Bare Specifier" errors in the Android WebView.
