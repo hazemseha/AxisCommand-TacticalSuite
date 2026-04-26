@@ -92,13 +92,6 @@ export function getFeatureIconHtml(type, color, customIconData) {
   
   // Tactical Hardcoded Assets (BURNED IN)
   const TACTICAL_ASSETS = {
-    'platoon': 'assets/icons/platoon.png',
-    'sniper': 'assets/icons/sniper.png',
-    'rpg': 'assets/icons/rpg.png',
-    'konkurs': 'assets/icons/konkurs.png',
-    'kornet': 'assets/icons/kornet.png',
-    'su23': 'assets/icons/su23.png',
-    'fpv_operator': 'assets/icons/fpv_operator.png',
     'rpg_team': 'assets/icons/rpg_team.svg',
     'hangar': 'assets/icons/hangar.svg',
     'tank': 'assets/icons/tank.svg',
@@ -833,13 +826,6 @@ export function setupSearchFeatures() {
 }
 
 const ICON_METADATA = [
-  { id: 'platoon', name: 'Platoon (Special Ops)', emoji: '🪖', group: 'Primary' },
-  { id: 'sniper', name: 'Sniper Team', emoji: '🎯', group: 'Primary' },
-  { id: 'rpg', name: 'RPG Team', emoji: '🚀', group: 'Primary' },
-  { id: 'konkurs', name: 'Konkurs ATGM', emoji: '🛡️', group: 'Primary' },
-  { id: 'kornet', name: 'Kornet ATGM', emoji: '🔱', group: 'Primary' },
-  { id: 'su23', name: 'SU-23 AA Gun', emoji: '🚜', group: 'Primary' },
-  { id: 'fpv_operator', name: 'FPV Unit (Suicide Drone)', emoji: '💥', group: 'Primary' },
   { id: 'rpg_team', name: 'ار بي جي (RPG)', emoji: '🚀', group: 'Primary' },
   { id: 'hangar', name: 'حظيرة (Hangar)', emoji: '🏭', group: 'Primary' },
   { id: 'tank', name: 'دبابة (Tank)', emoji: '🚂', group: 'Primary' },
