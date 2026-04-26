@@ -57,6 +57,7 @@
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.0",
     "@capacitor/app": "^8.1.0",
+    "@capacitor/share": "^8.0.1",
     "@geoman-io/leaflet-geoman-free": "^2.19.2",
     "@tmcw/togeojson": "^7.1.2",
     "better-sqlite3": "^12.9.0",

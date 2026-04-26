@@ -29,6 +29,9 @@ import { exportKML, exportGeoJSON } from './exportGeo.js';
 import { showTacticalPrompt, showTacticalConfirm } from './user-management.js';
 import { encrypt, decrypt, isEncryptionActive } from './crypto.js';
 import { resolveConflicts, validateSyncPayload, formatSyncSummary } from './sync-engine.js';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 // ===== HELPERS =====
 
@@ -153,7 +156,7 @@ export async function exportTacticalEnvelope(sinceTimestamp = 0, peerDeviceId, o
     });
     progressFill.style.width = '90%';
 
-    // Step 7: Trigger download
+    // Step 7: Trigger native share on Android, browser download on desktop
     const date = new Date().toISOString().split('T')[0];
     let filename;
     if (options.folderId) {
@@ -164,12 +167,43 @@ export async function exportTacticalEnvelope(sinceTimestamp = 0, peerDeviceId, o
       filename = `AxisCommand_${syncLabel}_${date}.tactical`;
     }
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (Capacitor.isNativePlatform()) {
+      // --- NATIVE ANDROID: Write to cache → open OS share dialog ---
+      statusText.textContent = '📡 جاري تجهيز المشاركة...';
+      
+      // Convert blob to base64 for Capacitor Filesystem
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8 = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < uint8.length; i++) {
+        binary += String.fromCharCode(uint8[i]);
+      }
+      const base64Data = btoa(binary);
+
+      // Write to app cache directory
+      const writeResult = await Filesystem.writeFile({
+        path: filename,
+        data: base64Data,
+        directory: Directory.Cache
+      });
+
+      // Open native share dialog (Quick Share / Bluetooth / etc.)
+      await Share.share({
+        title: 'AxisCommand Tactical Data',
+        text: `📦 ${filename} — ${manifest.counts.pins + manifest.counts.routes + manifest.counts.zones} عنصر ${isEncrypted ? '🔐' : ''}`,
+        url: writeResult.uri,
+        dialogTitle: 'مشاركة بيانات تكتيكية'
+      });
+
+    } else {
+      // --- WEB/DESKTOP: Standard browser download ---
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
 
     progressFill.style.width = '100%';
     const scopeLabel = options.folderId ? `📁 ${options.folderName}` : '';
