@@ -263,7 +263,7 @@ function initInternetLockdown() {
 window.L = L;
 
 const isNativeMobile = Capacitor.isNativePlatform();
-let mobileDbSat, mobileDbStreet;
+let mobileDbSat, mobileDbStreet, mobileDbLabels;
 
 /**
  * ANDROID BRIDGE: Initialize SQLite databases from Public Storage
@@ -277,10 +277,12 @@ const initMobileDatabases = async () => {
     // NCConnections can't be retrieved — must be closed and re-created
     const checkSat = await sqlite.isConnection("tripoli-satellite", false);
     const checkStreet = await sqlite.isConnection("tripoli-street", false);
-    if ((checkSat && checkSat.result) || (checkStreet && checkStreet.result)) {
+    const checkLabels = await sqlite.isConnection("tripoli-labels", false);
+    if ((checkSat && checkSat.result) || (checkStreet && checkStreet.result) || (checkLabels && checkLabels.result)) {
         console.log("[PinVault Mobile] Stale connections detected. Closing for fresh init...");
         try { await sqlite.closeConnection("tripoli-satellite", false); } catch(x) {}
         try { await sqlite.closeConnection("tripoli-street", false); } catch(x) {}
+        try { await sqlite.closeConnection("tripoli-labels", false); } catch(x) {}
     }
 
     // CRITICAL: Disable the automatic '.db' suffix globally.
@@ -348,6 +350,20 @@ const initMobileDatabases = async () => {
       console.warn(`[PinVault Mobile] Street layer not found at ${streetPath}. Continuing with Satellite only.`);
       mobileDbStreet = null;
     }
+
+    // Connect Labels (separate DB for street name overlays)
+    const labelsPath = successPath.includes('/') 
+      ? successPath.replace("satellite", "labels")
+      : "tripoli-labels.db";
+      
+    try {
+      mobileDbLabels = await sqlite.createNCConnection(labelsPath, successPath.includes('/') ? 0 : 1);
+      await mobileDbLabels.open();
+      console.log(`[PinVault Mobile] 🗺️ Labels DB online: ${labelsPath}`);
+    } catch (labelsErr) {
+      console.warn(`[PinVault Mobile] Labels layer not found at ${labelsPath}. Falling back to street DB.`);
+      mobileDbLabels = null;
+    }
     
     console.log(`[PinVault Mobile] Tactical Capsules Online (Active: ${successPath})`);
     return true; // SUCCESS
@@ -370,8 +386,10 @@ const closeMobileDatabases = async () => {
     const sqlite = new SQLiteConnection(CapacitorSQLite);
     try { await sqlite.closeConnection("tripoli-satellite", false); } catch(e) {}
     try { await sqlite.closeConnection("tripoli-street", false); } catch(e) {}
+    try { await sqlite.closeConnection("tripoli-labels", false); } catch(e) {}
     mobileDbSat = null;
     mobileDbStreet = null;
+    mobileDbLabels = null;
     console.log("[PinVault Mobile] SQLite connections closed.");
   } catch(e) { console.warn("[PinVault Mobile] Close error:", e); }
 };
@@ -1073,7 +1091,7 @@ async function init() {
       console.log("[PinVault Mobile] Mapping Layers to Active Database Stream...");
       if (satelliteLayer) satelliteLayer.options.db = mobileDbSat;
       if (streetLayer) streetLayer.options.db = mobileDbStreet;
-      if (labelsLayer) labelsLayer.options.db = mobileDbStreet;
+      if (labelsLayer) labelsLayer.options.db = mobileDbLabels || mobileDbStreet;
       if (satelliteLayer) satelliteLayer.redraw();
     }
 
