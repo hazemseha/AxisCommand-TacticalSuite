@@ -75,6 +75,7 @@ export const CapacitorMBTilesLayer = L.TileLayer.extend({
               // Simple magic byte check for blobs
               let type = 'image/png';
               if (bytes[0] === 0xFF && bytes[1] === 0xD8) type = 'image/jpeg';
+              else if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) type = 'image/webp';
               
               const blob = new Blob([bytes], { type });
               objectUrl = URL.createObjectURL(blob);
@@ -96,6 +97,7 @@ export const CapacitorMBTilesLayer = L.TileLayer.extend({
             if (tileData.startsWith('/9j/')) mimeType = 'image/jpeg';
             else if (tileData.startsWith('iVBORw')) mimeType = 'image/png';
             else if (tileData.startsWith('R0lGOD')) mimeType = 'image/gif';
+            else if (tileData.startsWith('UklGR')) mimeType = 'image/webp';
 
             dataUrl = `data:${mimeType};base64,${tileData}`;
             if (this.options.debug) {

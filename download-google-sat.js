@@ -10,6 +10,7 @@
  *   1. Pre-Flight Analysis  — calculates tile counts per zoom, shows cost table
  *   2. Interactive Prompt   — user selects max zoom level
  *   3. Stealth Download     — concurrent fetches with headers + rate limiting
+ *   3.5 WebP Compression    — sharp converts raw JPG → WebP (q85) before DB insert
  *   4. Atomic Swap          — backup old DB, promote temp DB only on 100% success
  */
 
@@ -20,6 +21,7 @@ import { fileURLToPath } from 'url';
 import readline from 'readline';
 import https from 'https';
 import http from 'http';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,8 +62,8 @@ const CONFIG = {
   retryAttempts: 3,
   retryDelay: 3000,     // ms
   
-  // Average tile size estimate (Google Satellite JPG)
-  avgTileSizeKB: 15,
+  // Average tile size estimate (WebP compressed @ q85)
+  avgTileSizeKB: 8,
   
   // File paths
   productionDb: path.join(__dirname, 'tripoli-satellite.db'),
@@ -234,10 +236,10 @@ async function downloadTiles(maxZoom) {
   // Metadata
   const stmtMeta = db.prepare('INSERT INTO metadata VALUES (?, ?)');
   stmtMeta.run('name', 'Tripoli Google Satellite');
-  stmtMeta.run('format', 'jpg');
+  stmtMeta.run('format', 'webp');
   stmtMeta.run('type', 'baselayer');
   stmtMeta.run('version', '2.0');
-  stmtMeta.run('description', 'Google Satellite tiles – Stealth Downloaded');
+  stmtMeta.run('description', 'Google Satellite tiles – WebP Compressed – Stealth Downloaded');
   stmtMeta.run('bounds', `${CONFIG.bounds.west},${CONFIG.bounds.south},${CONFIG.bounds.east},${CONFIG.bounds.north}`);
   stmtMeta.run('minzoom', String(CONFIG.minZoom));
   stmtMeta.run('maxzoom', String(maxZoom));
@@ -261,7 +263,7 @@ async function downloadTiles(maxZoom) {
   const failedQueue = [];
   
   console.log(`\n🚀 Starting download: ${totalTiles} tiles (Z${CONFIG.minZoom}–Z${maxZoom})`);
-  console.log(`   Concurrency: ${CONFIG.concurrency} | Stealth headers: ON\n`);
+  console.log(`   Concurrency: ${CONFIG.concurrency} | Stealth headers: ON | WebP: q85\n`);
   
   const startTime = Date.now();
   
@@ -277,8 +279,12 @@ async function downloadTiles(maxZoom) {
     
     const results = await Promise.allSettled(
       batch.map(async ({ z, x, y }) => {
-        const data = await fetchTile(z, x, y);
-        insertTile(z, x, y, data);
+        const rawData = await fetchTile(z, x, y);
+        // WebP compression pipeline — ~40-60% smaller than raw JPG
+        const compressed = await sharp(rawData)
+          .webp({ quality: 85, effort: 4 })
+          .toBuffer();
+        insertTile(z, x, y, compressed);
         return { z, x, y };
       })
     );
@@ -324,8 +330,11 @@ async function downloadTiles(maxZoom) {
         
         const results = await Promise.allSettled(
           batch.map(async ({ z, x, y }) => {
-            const data = await fetchTile(z, x, y);
-            insertTile(z, x, y, data);
+            const rawData = await fetchTile(z, x, y);
+            const compressed = await sharp(rawData)
+              .webp({ quality: 85, effort: 4 })
+              .toBuffer();
+            insertTile(z, x, y, compressed);
             return { z, x, y };
           })
         );
@@ -345,6 +354,10 @@ async function downloadTiles(maxZoom) {
     
     console.log(`\n  Retry complete. Recovered: ${failed === 0 ? 'ALL' : `${failedQueue.length} still failed`}`);
   }
+  
+  // VACUUM — defragment and minimize file size on disk
+  console.log('\n🗜️  Running VACUUM to optimize database size...');
+  db.exec('VACUUM');
   
   // Finalize DB
   db.pragma('journal_mode = DELETE');
@@ -404,9 +417,9 @@ function atomicSwap(totalTiles, downloaded) {
 async function main() {
   console.clear();
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('  🛰️  AxisCommand — Google Satellite Stealth Downloader v2.0');
+  console.log('  🛰️  AxisCommand — Google Satellite Stealth Downloader v3.0');
   console.log('  📍 Target: Tripoli Tactical Bounding Box');
-  console.log(`  ⚙️  Stealth Mode: ON (Headers + Rate Limiting)`);
+  console.log(`  ⚙️  Stealth Mode: ON | WebP Compression: q85`);
   console.log('═══════════════════════════════════════════════════════════════');
   
   // PHASE 1: Show analysis table
