@@ -210,11 +210,11 @@ function randomDelay() {
 // SINGLE ZOOM CHUNK DOWNLOAD
 // ═══════════════════════════════════════════════════════════════
 
-async function downloadZoomChunk(zoom) {
+async function downloadZoomChunk(zoom, resume = false) {
   const dbPath = chunkPath(zoom);
   
-  // Remove stale chunk if exists
-  if (fs.existsSync(dbPath)) {
+  // Remove stale chunk if exists (unless resuming)
+  if (fs.existsSync(dbPath) && !resume) {
     fs.unlinkSync(dbPath);
     console.log(`🗑️  Removed existing chunk for Z${zoom}`);
   }
@@ -249,22 +249,39 @@ async function downloadZoomChunk(zoom) {
   
   // Build task list for this single zoom
   const range = getTileRange(zoom);
-  const tasks = [];
+  let tasks = [];
   for (let x = range.xMin; x <= range.xMax; x++) {
     for (let y = range.yMin; y <= range.yMax; y++) {
       tasks.push({ z: zoom, x, y });
     }
   }
   
+  const fullTotal = tasks.length;
+  let alreadyHave = 0;
+  
+  // RESUME MODE: Filter out tiles already in the DB
+  if (resume) {
+    const existing = new Set();
+    const rows = db.prepare('SELECT tile_column, tile_row FROM tiles WHERE zoom_level = ?').all(zoom);
+    for (const row of rows) {
+      // Convert TMS Y back to slippy Y for comparison
+      const slippyY = (1 << zoom) - 1 - row.tile_row;
+      existing.add(`${row.tile_column}_${slippyY}`);
+    }
+    alreadyHave = existing.size;
+    tasks = tasks.filter(t => !existing.has(`${t.x}_${t.y}`));
+    console.log(`\n🔄 RESUME MODE: ${alreadyHave} tiles already in DB, ${tasks.length} remaining`);
+  }
+  
   const totalTiles = tasks.length;
-  let downloaded = 0;
+  let downloaded = alreadyHave;
   let emptySkipped = 0;
   let failed = 0;
   const failedQueue = [];
   let totalRawBytes = 0;
   let totalCompressedBytes = 0;
   
-  console.log(`\n🚀 Downloading Z${zoom}: ${totalTiles.toLocaleString()} tiles (${range.cols}×${range.rows})`);
+  console.log(`\n🚀 Downloading Z${zoom}: ${totalTiles.toLocaleString()} tiles${resume ? ' (remaining)' : ` (${range.cols}×${range.rows})`}`);
   console.log(`   Output: chunks/tripoli-sat-Z${zoom}.db`);
   console.log(`   Pipeline: Fetch → sharp WebP q85 → SQLite\n`);
   
@@ -386,12 +403,12 @@ async function downloadZoomChunk(zoom) {
   console.log(`║  Time:           ${(elapsed + ' min').padStart(10).padEnd(32)}║`);
   console.log(`╚═══════════════════════════════════════════════════╝`);
   
-  if (downloaded + emptySkipped === totalTiles) {
+  if (downloaded + emptySkipped === fullTotal || (resume && downloaded + emptySkipped - alreadyHave === totalTiles)) {
     console.log(`\n✅ Chunk Z${zoom} complete! (${emptySkipped} sea tiles skipped)`);
     console.log(`   File: chunks/tripoli-sat-Z${zoom}.db`);
   } else if (failed > 0) {
     console.log(`\n⚠️  Chunk Z${zoom} has ${failed} real failures (not sea tiles).`);
-    console.log(`   Re-run with: node download-google-sat.js --zoom ${zoom}`);
+    console.log(`   Resume with: node download-google-sat.js --zoom ${zoom} --resume`);
   }
   
   return { totalTiles, downloaded, emptySkipped, failed };
@@ -430,10 +447,17 @@ async function main() {
     process.exit(1);
   }
   
+  // Check for --resume flag
+  const isResume = process.argv.includes('--resume');
+  
   // Check if chunk already exists
-  if (fs.existsSync(chunkPath(zoom))) {
-    const overwrite = await askQuestion(`⚠️  chunks/tripoli-sat-Z${zoom}.db already exists. Overwrite? (y/n): `);
-    if (overwrite.toLowerCase() !== 'y') {
+  if (fs.existsSync(chunkPath(zoom)) && !isResume) {
+    const overwrite = await askQuestion(`⚠️  chunks/tripoli-sat-Z${zoom}.db already exists. Overwrite? (y/n/r=resume): `);
+    if (overwrite.toLowerCase() === 'r') {
+      // User chose resume
+      await downloadZoomChunk(zoom, true);
+      return;
+    } else if (overwrite.toLowerCase() !== 'y') {
       console.log('\n🛑 Cancelled.');
       process.exit(0);
     }
@@ -451,7 +475,7 @@ async function main() {
     process.exit(0);
   }
   
-  await downloadZoomChunk(zoom);
+  await downloadZoomChunk(zoom, isResume);
   
   console.log('\n───────────────────────────────────────────────────────────────────────');
   console.log('  Next step: Download more zoom levels, then run:');
