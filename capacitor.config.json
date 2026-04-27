@@ -6,6 +6,9 @@
   "server": {
     "androidScheme": "https"
   },
+  "android": {
+    "useLegacyBridge": true
+  },
   "plugins": {
     "Filesystem": {
       "path": "data"

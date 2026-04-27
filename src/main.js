@@ -35,7 +35,8 @@ import { initLang, toggleLang, t, getLang } from './i18n.js';
 import { estimateTiles, downloadArea } from './downloader.js';
 import { Logger } from './logger.js';
 import { hasUser, getUserProfile, registerUser, login, isAuthenticated, logout, getAllUsers, switchToUser, removeUserFromList, removeUserById, clearActiveUser, getActiveUserId } from './auth.js';
-import { initBFT, toggleBFT, deactivateBFT } from './blueforce.js';
+import { initTacticalTracker, toggleTracking, stopTracking } from './tactical-tracker.js';
+import { initTrackManager, toggleTrackManager } from './track-manager.js';
 import { executePrint, updatePrintFrame } from './print-engine.js';
 import { requireAdminPin, buildUserListUI, showTacticalPrompt, showTacticalAlert, showTacticalConfirm, delay } from './user-management.js';
 import { initQuickMenu, showMenu as showQuickMenu } from './quickmenu.js';
@@ -1093,7 +1094,8 @@ async function init() {
       (async () => initTacticalFigures(mapInstance))(),
       (async () => initRangeRings(mapInstance))(),
       (async () => initMGRS(mapInstance))(),
-      (async () => initBFT(mapInstance))(),
+      (async () => initTacticalTracker(mapInstance))(),
+      (async () => initTrackManager(mapInstance))(),
       (async () => initQuickMenu(mapInstance))(),
       (async () => initStreetModes(mapInstance))(),
       (async () => initTocMode(mapInstance))()
@@ -1277,7 +1279,7 @@ function setupButtonListeners() {
   safeListen('btn-freehand', 'click', () => { activateTactical('freehand'); if(activeTacticalKey==='freehand') toggleTacticalFigures(); });
   safeListen('btn-range-rings', 'click', () => { activateTactical('rings'); if(activeTacticalKey==='rings') toggleRangeRings(); });
   safeListen('btn-mgrs', 'click', () => { activateTactical('mgrs'); if(activeTacticalKey==='mgrs') toggleMGRS(); });
-  safeListen('btn-bft', 'click', () => { activateTactical('bft'); if(activeTacticalKey==='bft') toggleBFT(); });
+  safeListen('btn-bft', 'click', () => { activateTactical('bft'); if(activeTacticalKey==='bft') toggleTracking(); });
 
   // Street Labels Toggle
   safeListen('btn-street-labels', 'click', toggleStreetLabels);
@@ -1290,16 +1292,9 @@ function setupButtonListeners() {
     } catch (e) { console.warn('Mesh chat not available:', e); }
   });
 
-  // Track Recording (lazy loaded)
-  safeListen('btn-track-record', 'click', async () => {
-    try {
-      const { toggleRecording, initTrackRecorder } = await import('./track-recorder.js');
-      if (!window._trackRecorderInit) {
-        initTrackRecorder(map);
-        window._trackRecorderInit = true;
-      }
-      toggleRecording();
-    } catch (e) { console.warn('Track recorder not available:', e); }
+  // Track Manager (replaces old track recorder)
+  safeListen('btn-track-record', 'click', () => {
+    toggleTrackManager();
   });
 
   // Data Migration (lazy loaded)

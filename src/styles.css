@@ -4525,3 +4525,147 @@ body.toc-mode #btn-exit-toc {
   text-align: center;
   margin: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   TRACK MANAGER PANEL
+   ═══════════════════════════════════════════════════════════════ */
+
+.track-manager-panel {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  z-index: 1200;
+  width: 340px;
+  max-height: calc(100vh - 120px);
+  background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  overflow: hidden;
+  direction: rtl;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.track-manager-panel.hidden { display: none; }
+
+.tm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(30, 58, 95, 0.6);
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.tm-list {
+  overflow-y: auto;
+  max-height: calc(100vh - 180px);
+  padding: 8px;
+}
+
+.tm-empty {
+  color: #6b7280;
+  text-align: center;
+  padding: 30px 10px;
+  font-size: 0.9rem;
+}
+
+.tm-track {
+  background: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+
+.tm-track:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.tm-track-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tm-track-state {
+  font-size: 0.8rem;
+}
+
+.tm-track-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #93c5fd;
+  cursor: pointer;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-track-name:hover {
+  text-decoration: underline;
+}
+
+.tm-track-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.tm-track-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tm-btn {
+  padding: 4px 8px;
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  border-radius: 6px;
+  background: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tm-btn:hover {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #fff;
+}
+
+.tm-btn-render {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.tm-btn-render:hover {
+  background: rgba(16, 185, 129, 0.4);
+}
+
+.tm-btn-delete {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.tm-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+/* Rendered track polyline */
+.rendered-track-line {
+  filter: drop-shadow(0 0 4px rgba(255, 107, 53, 0.5));
+}

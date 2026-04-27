@@ -12,7 +12,7 @@ import { openDB } from 'idb';
 import { encryptFields, decryptFields, isEncryptionActive } from './crypto.js';
 
 const DB_NAME = 'PinVaultDB';
-const DB_VERSION = 6; // V6: Sync-ready schema (updatedAt index, soft deletes)
+const DB_VERSION = 7; // V7: + tracks store for tactical GPS tracking
 
 let dbPromise;
 
@@ -116,6 +116,16 @@ export function getDB() {
                 store.createIndex('by-updatedAt', 'updatedAt');
               }
             }
+          }
+        }
+
+        // V7: GPS Tracks store for tactical tracker
+        if (oldVersion < 7) {
+          if (!db.objectStoreNames.contains('tracks')) {
+            const trackStore = db.createObjectStore('tracks', { keyPath: 'id' });
+            trackStore.createIndex('by-userId', 'userId');
+            trackStore.createIndex('by-updatedAt', 'updatedAt');
+            trackStore.createIndex('by-date', 'startTime');
           }
         }
       }
@@ -542,6 +552,40 @@ export async function purgeTombstones(maxAgeMs = 7 * 24 * 60 * 60 * 1000) {
     console.log(`[DB] Purged ${purged} tombstones older than ${Math.round(maxAgeMs / 86400000)}d`);
   }
   return purged;
+}
+
+// ===== TRACK OPERATIONS (GPS Tactical Tracker) =====
+
+export async function saveTrack(track) {
+  const db = await getDB();
+  track.userId = track.userId || getCurrentUserId();
+  stampRecord(track);
+  return db.put('tracks', track);
+}
+
+export async function getAllTracks() {
+  const db = await getDB();
+  const allTracks = await db.getAll('tracks');
+  const userId = getCurrentUserId();
+  return allTracks
+    .filter(t => (t.userId || userId) === userId && !t.deleted)
+    .sort((a, b) => (b.startTime || 0) - (a.startTime || 0));
+}
+
+export async function getTrack(id) {
+  const db = await getDB();
+  return db.get('tracks', id);
+}
+
+export async function deleteTrack(id) {
+  const db = await getDB();
+  const track = await db.get('tracks', id);
+  if (track) {
+    track.deleted = true;
+    track.updatedAt = Date.now();
+    track.deviceId = getDeviceId();
+    await db.put('tracks', track);
+  }
 }
 
 // ===== TILE OPERATIONS =====
